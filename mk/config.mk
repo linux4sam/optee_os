@@ -784,3 +784,6 @@ $(eval $(call cfg-enable-all-depends,CFG_MEMPOOL_REPORT_LAST_OFFSET, \
 # Enable support for generic watchdog registration
 # This watchdog will then be usable by non-secure world through SMC calls.
 CFG_WDT ?= n
+CFG_WDT_SM_HANDLER ?= n
+CFG_WDT_SM_HANDLER_ID ?= 0x82003D06
+$(eval $(call cfg-enable-all-depends,CFG_WDT_SM_HANDLER,CFG_WDT))
