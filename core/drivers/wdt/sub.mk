@@ -1,1 +1,1 @@
-srcs-y += watchdog.c
+srcs-$(CFG_WDT) += watchdog.c

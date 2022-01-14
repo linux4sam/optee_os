@@ -780,3 +780,7 @@ CFG_CORE_ASYNC_NOTIF ?= n
 
 $(eval $(call cfg-enable-all-depends,CFG_MEMPOOL_REPORT_LAST_OFFSET, \
 	 CFG_WITH_STATS))
+
+# Enable support for generic watchdog registration
+# This watchdog will then be usable by non-secure world through SMC calls.
+CFG_WDT ?= n
