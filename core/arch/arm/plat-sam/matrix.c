@@ -36,15 +36,21 @@
 #include <kernel/panic.h>
 #include <matrix.h>
 #include <platform_config.h>
+#ifdef OPTEE_SAMA7G5
+#include <sama7g5.h>
+#else
 #include <sama5d2.h>
+#endif
 #include <sm/sm.h>
 #include <stdint.h>
 #include <tz_matrix.h>
 #include <trace.h>
 
+#ifndef OPTEE_SAMA7G5
 #define MATRIX_H64MX	0
 #define MATRIX_H32MX	1
 #define MATRIX_COUNT	2
+#endif
 
 #define SECURITY_TYPE_AS	1
 #define SECURITY_TYPE_NS	2
@@ -64,6 +70,154 @@ struct peri_security {
 	unsigned int security_type;
 };
 
+#ifdef OPTEE_SAMA7G5
+static const struct peri_security peri_security_array[] = {
+	{.peri_id = ID_DWDT_SW,        .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_DWDT_NSW,       .security_type = SECURITY_TYPE_NS, },
+	{.peri_id = ID_DWDT_NSW_ALARM, .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_SCKC,           .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_SHDWC,          .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_RSTC,           .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_RTC,            .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_RTT,            .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_CHIPID,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PMC,            .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_PIOA,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOB,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOC,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOD,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOE,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SECUMOD,        .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_SECURAM,        .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_SFR,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SFRBU,          .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_HSMC,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC0,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC1,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC2,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_ACC,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_ADC,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_AES,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TZAESBASC,      .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_ASRC,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_CPKCC,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_CSI,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_CSI2DC,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_DDRPUBL,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_DDRUMCTL,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_EIC,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM0,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM1,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM2,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM3,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM4,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM5,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM6,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM7,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM8,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM9,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM10,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_FLEXCOM11,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC1,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_TSU,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC1_TSU,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_ICM,            .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_ISC,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_I2SMCC0,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_I2SMCC1,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MATRIX,         .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_MCAN0,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN1,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN2,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN3,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN4,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN5,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_OTPC,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PDMC0,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PDMC1,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B0,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B1,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B2,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B3,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B4,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B5,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PWM,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_QSPI0,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_QSPI1,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC0,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC1,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC2,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SHA,            .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SPDIFRX,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SPDIFTX,        .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SSC0,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SSC1,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC0_CHANNEL0,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC0_CHANNEL1,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC0_CHANNEL2,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC1_CHANNEL0,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC1_CHANNEL1,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TC1_CHANNEL2,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TCPCA,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TCPCB,          .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TDES,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TRNG,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TZAESB_NS,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TZAESB_NS_SINT, .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_TZAESB_S,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TZAESB_S_SINT,  .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_TZC,            .security_type = SECURITY_TYPE_AS, },
+//	{.peri_id = ID_TZPM,           .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_UDPHSA,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_UDPHSB,         .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_UHPHS,          .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = AT91C_ID_ARM,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = AT91C_ID_ARM,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC0_SINT,    .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC1_SINT,    .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_XDMAC2_SINT,    .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_AES_SINT,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_Q1,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_Q2,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_Q3,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_Q4,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC0_Q5,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_GMAC1_Q1,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_ICM_SINT,       .security_type = SECURITY_TYPE_AS, },
+	{.peri_id = ID_MCAN0_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN1_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN2_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN3_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN4_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_MCAN5_INT1,     .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOA_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOB_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOC_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOD_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIOE_SINT,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_PIT64B0_SINT,   .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_PIT64B1_SINT,   .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_PIT64B2_SINT,   .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_PIT64B3_SINT,   .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_PIT64B4_SINT,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_PIT64B5_SINT,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC0_TIMER,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC1_TIMER,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SDMMC2_TIMER,   .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_SHA_SINT,       .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC0_SINT0,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC0_SINT1,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC0_SINT2,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC1_SINT0,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC1_SINT1,      .security_type = SECURITY_TYPE_PS, },
+//	{.peri_id = ID_TC1_SINT2,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TDES_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_TRNG_SINT,      .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_EXT_IRQ0,       .security_type = SECURITY_TYPE_PS, },
+	{.peri_id = ID_EXT_IRQ1,       .security_type = SECURITY_TYPE_PS, },
+};
+#else
 static const struct peri_security peri_security_array[] = {
 	{
 		.peri_id = AT91C_ID_PMC,
@@ -436,7 +590,7 @@ static const struct peri_security peri_security_array[] = {
 		.security_type = SECURITY_TYPE_PS,
 	},
 };
-
+#endif
 static void matrix_write(unsigned int base,
 			 unsigned int offset,
 			 const unsigned int value)
@@ -459,7 +613,8 @@ void matrix_write_protect_disable(unsigned int matrix_base)
 {
 	matrix_write(matrix_base, MATRIX_WPMR, MATRIX_WPMR_WPKEY_PASSWD);
 }
-
+#ifdef OPTEE_SAMA7G5
+#else
 static vaddr_t matrix_get_base(unsigned int matrix)
 {
 	if (matrix == MATRIX_H32MX)
@@ -469,11 +624,15 @@ static vaddr_t matrix_get_base(unsigned int matrix)
 	else
 		return 0;
 }
-
+#endif
 static void matrix_disp_error(unsigned int matrix)
 {
 	uint8_t master = 0;
+#ifdef OPTEE_SAMA7G5
+	vaddr_t base = matrix_base();
+#else
 	vaddr_t base = matrix_get_base(matrix);
+#endif
 	uint32_t mesr = matrix_read(base, MATRIX_MESR);
 	paddr_t addr = 0;
 	struct sm_nsec_ctx *ctx = NULL;
@@ -505,6 +664,13 @@ static enum itr_return matrix_it_handler(struct itr_handler *handler __unused)
 	return ITRR_HANDLED;
 }
 
+#ifdef OPTEE_SAMA7G5
+static struct itr_handler matrix_itr_handler = {
+	.it = ID_MATRIX,
+	.handler = matrix_it_handler,
+//	.data = (void *) MATRIX_H64MX,
+};
+#else
 static struct itr_handler matrix_itr_handlers[MATRIX_COUNT] = {
 	{
 		.it = AT91C_ID_MATRIX0,
@@ -517,12 +683,23 @@ static struct itr_handler matrix_itr_handlers[MATRIX_COUNT] = {
 		.data = (void *) MATRIX_H32MX,
 	}
 };
+#endif
 
 void matrix_interrupt_init(void)
 {
 	int i = 0;
 	vaddr_t base = 0;
 
+#ifdef OPTEE_SAMA7G5
+	itr_add_type_prio(&matrix_itr_handler, IRQ_TYPE_LEVEL_HIGH, 0);
+	itr_enable(matrix_itr_handler.it);
+	base = matrix_base();
+
+	/* Enable errors interrupts for all masters */
+	matrix_write(base, MATRIX_MEIER, MATRIX_MASTER_COUNT - 1);
+	/* Unmask all masters */
+	matrix_write(base, MATRIX_MEIMR, MATRIX_MASTER_COUNT - 1);
+#else
 	for (i = 0; i < MATRIX_COUNT; i++) {
 		itr_add_type_prio(&matrix_itr_handlers[i], IRQ_TYPE_LEVEL_HIGH,
 				  0);
@@ -534,6 +711,7 @@ void matrix_interrupt_init(void)
 		/* Unmask all masters */
 		matrix_write(base, MATRIX_MEIMR, MATRIX_MASTER_COUNT - 1);
 	}
+#endif
 }
 
 void matrix_configure_slave_security(unsigned int matrix_base,
@@ -573,12 +751,16 @@ static int matrix_set_periph_world(unsigned int matrix, unsigned int peri_id,
 
 	bit = (0x01 << (peri_id % 32));
 
+#ifdef OPTEE_SAMA7G5
+	base = matrix_base();
+#else
 	if (matrix == MATRIX_H32MX)
 		base = matrix32_base();
 	else if (matrix == MATRIX_H64MX)
 		base = matrix64_base();
 	else
 		return -1;
+#endif
 
 	spselr = matrix_read(base, MATRIX_SPSELR(idx));
 	if (world == WORLD_SECURE)
@@ -668,8 +850,12 @@ static void matrix_save_regs(vaddr_t base, struct matrix_state *state)
 
 static void matrix_suspend(void)
 {
+#ifdef OPTEE_SAMA7G5
+	matrix_save_regs(matrix_base(), &matrix32_state);
+#else
 	matrix_save_regs(matrix32_base(), &matrix32_state);
 	matrix_save_regs(matrix64_base(), &matrix64_state);
+#endif
 }
 
 static void matrix_restore_regs(vaddr_t base, struct matrix_state *state)
@@ -693,8 +879,12 @@ static void matrix_restore_regs(vaddr_t base, struct matrix_state *state)
 
 static void matrix_resume(void)
 {
+#ifdef OPTEE_SAMA7G5
+	matrix_restore_regs(matrix_base(), &matrix32_state);
+#else
 	matrix_restore_regs(matrix32_base(), &matrix32_state);
 	matrix_restore_regs(matrix64_base(), &matrix64_state);
+#endif
 }
 
 static TEE_Result matrix_pm(enum pm_op op, uint32_t pm_hint __unused,

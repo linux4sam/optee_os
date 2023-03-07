@@ -38,9 +38,13 @@
 #include <sm/sm.h>
 #include <smc_ids.h>
 #include <types_ext.h>
+#ifdef OPTEE_SAMA7G5
+#include <sama7g5.h>
+#else
 #include <sama5d2.h>
-
 #include <sam_pl310.h>
+#endif
+
 #include <sam_sfr.h>
 
 #define REGMAP_SMC_READ		0

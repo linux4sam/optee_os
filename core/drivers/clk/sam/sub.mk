@@ -6,3 +6,4 @@ at91-common += at91_programmable.c at91_system.c at91_peripheral.c
 at91-common += at91_generated.c at91_i2s_mux.c at91_audio_pll.c
 
 srcs-$(CFG_DRIVERS_SAMA5D2_CLK) += $(at91-common) sama5d2_clk.c
+srcs-$(CFG_DRIVERS_SAMA7G5_CLK) += $(at91-common) sama7g5_clk.c

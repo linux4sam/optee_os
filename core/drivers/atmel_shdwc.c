@@ -13,7 +13,11 @@
 #include <kernel/thread.h>
 #include <libfdt.h>
 #include <matrix.h>
+#ifdef OPTEE_SAMA7G5
+#include <sama7g5.h>
+#else
 #include <sama5d2.h>
+#endif
 #include <stdbool.h>
 #include <tee_api_defines.h>
 #include <tee_api_types.h>
@@ -155,7 +159,9 @@ static TEE_Result atmel_shdwc_probe(const void *fdt, int node,
 	if (_fdt_get_status(fdt, node) != DT_STATUS_OK_SEC)
 		return TEE_ERROR_BAD_PARAMETERS;
 
+#ifndef OPTEE_SAMA7G5
 	matrix_configure_periph_secure(AT91C_ID_SYS);
+#endif
 
 	if (dt_map_dev(fdt, node, &shdwc_base, &size) < 0)
 		return TEE_ERROR_GENERIC;

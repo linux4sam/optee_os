@@ -152,10 +152,18 @@ static TEE_Result pio_node_probe(const void *fdt, int node,
 
 	clk_enable(clk);
 
+#ifdef OPTEE_SAMA7G5
+	matrix_configure_periph_secure(ID_PIOA);
+	matrix_configure_periph_secure(ID_PIOB);
+	matrix_configure_periph_secure(ID_PIOC);
+	matrix_configure_periph_secure(ID_PIOD);
+	matrix_configure_periph_secure(ID_PIOE);
+#else
 	matrix_configure_periph_secure(AT91C_ID_PIOA);
 	matrix_configure_periph_secure(AT91C_ID_PIOB);
 	matrix_configure_periph_secure(AT91C_ID_PIOC);
 	matrix_configure_periph_secure(AT91C_ID_PIOD);
+#endif
 
 	pio_init_hw(pio);
 

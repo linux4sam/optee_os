@@ -79,8 +79,10 @@ static TEE_Result clk_utmi_enable(struct clk *clk)
 
 	io_clrsetbits32(utmi->pmc_base + AT91_CKGR_UCKR, uckr, uckr);
 
+#ifndef OPTEE_SAMA7G5
 	while (!clk_utmi_ready(utmi->pmc_base))
 		;
+#endif
 
 	return TEE_SUCCESS;
 }

@@ -39,4 +39,8 @@ static TEE_Result sckc_pmc_setup(const void *fdt __unused, int offs,
 					    clk);
 }
 
+#ifdef OPTEE_SAMA7G5
+CLK_DT_DECLARE(at91_sckc, "atmel,sama7g5-sckc", sckc_pmc_setup);
+#else
 CLK_DT_DECLARE(at91_sckc, "atmel,sama5d4-sckc", sckc_pmc_setup);
+#endif

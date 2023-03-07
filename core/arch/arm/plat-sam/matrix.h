@@ -41,8 +41,12 @@ int matrix_configure_periph_non_secure(unsigned int *peri_id_array,
 				       unsigned int size);
 int matrix_configure_periph_secure(unsigned int peri_id);
 
+#ifdef OPTEE_SAMA7G5
+vaddr_t matrix_base(void);
+#else
 vaddr_t matrix32_base(void);
 vaddr_t matrix64_base(void);
+#endif
 
 void matrix_interrupt_init(void);
 

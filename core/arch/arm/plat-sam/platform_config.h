@@ -30,7 +30,11 @@
 #define PLATFORM_CONFIG_H
 
 #include <mm/generic_ram_layout.h>
+#ifdef OPTEE_SAMA7G5
+#include <sama7g5.h>
+#else
 #include <sama5d2.h>
+#endif
 
 #define STACK_ALIGNMENT       64
 
@@ -41,10 +45,16 @@
 #error "LPAE not supported"
 #endif
 
-#define CONSOLE_UART_BASE     AT91C_BASE_UART1
+#ifdef OPTEE_SAMA7G5
+#define CONSOLE_UART_BASE   (FLEXCOM3_BASE_ADDRESS + 0x200)
+
+#define SFR_BASE            (SFR_BASE_ADDRESS)
+#else
+#define CONSOLE_UART_BASE   AT91C_BASE_UART1
 
 #define PL310_BASE          (AT91C_BASE_L2CC)
 #define SFR_BASE            (AT91C_BASE_SFR)
+#endif
 
 /*
  * PL310 Auxiliary Control Register

@@ -10,7 +10,14 @@
 #include <kernel/boot.h>
 #include <kernel/time_source.h>
 #include <matrix.h>
+#ifdef OPTEE_SAMA7G5
+#include <sama7g5.h>
+#define AT91C_BASE_TC0 TC0_BASE_ADDRESS
+#define AT91C_ID_TC0     ID_TC0_CHANNEL0
+#define AT91C_ID_TC1     ID_TC1_CHANNEL0
+#else
 #include <sama5d2.h>
+#endif
 #include <tee_api_defines.h>
 
 #define TCB_CHAN(chan)	(chan * 0x40)
@@ -140,6 +147,9 @@ static void atmel_tcb_configure(void)
 
 static TEE_Result atmel_tcb_setup(const void *fdt, int nodeoffset, int status)
 {
+#ifdef OPTEE_SAMA7G5
+	return TEE_SUCCESS;
+#endif
 	size_t size = 0;
 	TEE_Result res = TEE_ERROR_GENERIC;
 	unsigned int peri_id = AT91C_ID_TC0;
