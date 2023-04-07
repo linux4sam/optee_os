@@ -72,6 +72,9 @@ struct clk_pll_layout {
 	uint8_t frac_shift;
 	uint8_t div_shift;
 	uint8_t endiv_shift;
+#ifdef OPTEE_SAMA7G5
+	uint8_t div2;
+#endif
 };
 
 struct clk_pcr_layout {
@@ -86,6 +89,9 @@ struct clk_pll_charac {
 	struct clk_range input;
 	int num_output;
 	const struct clk_range *output;
+#ifdef OPTEE_SAMA7G5
+	const struct clk_range *core_output;
+#endif
 	uint16_t *icpll;
 	uint8_t *out;
 	uint8_t upll : 1;
@@ -202,6 +208,9 @@ struct clk *
 at91_clk_register_generated(struct pmc_data *pmc,
 			    const struct clk_pcr_layout *layout,
 			    const char *name, struct clk **parents,
+#ifdef OPTEE_SAMA7G5
+			    uint32_t *mux_table,
+#endif
 			    uint8_t num_parents, uint8_t id,
 			    const struct clk_range *range,
 			    int chg_pid);

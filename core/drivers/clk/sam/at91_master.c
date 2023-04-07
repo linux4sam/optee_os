@@ -85,8 +85,9 @@ static unsigned long clk_master_pres_get_rate(struct clk *clk,
 	val = io_read32(master->base + master->layout->offset);
 
 	pres = (val >> master->layout->pres_shift) & MASTER_PRES_MASK;
-	if (pres != 3 || !charac->have_div3_pres)
-		pres = BIT(pres);
+	pres = BIT(pres);
+	if (!!charac->have_div3_pres && (pres == 7))
+		pres = 3;
 
 	return UDIV_ROUND_NEAREST(parent_rate, pres);
 }

@@ -69,19 +69,37 @@ static TEE_Result clk_generated_set_parent(struct clk *clk, size_t index)
 {
 	struct clk_generated *gck = clk->priv;
 
+#ifdef OPTEE_SAMA7G5
+	unsigned int i;
+	for(i=0; i<8; i++)
+		if (gck->mux_table[i] == index) {
+			gck->parent_id = i;
+			return TEE_SUCCESS;
+		}
+
+	return TEE_ERROR_BAD_PARAMETERS;
+#else
 	if (index >= clk_get_num_parents(clk))
 		return TEE_ERROR_BAD_PARAMETERS;
 
 	gck->parent_id = index;
 
 	return TEE_SUCCESS;
+#endif
 }
 
 static size_t clk_generated_get_parent(struct clk *clk)
 {
 	struct clk_generated *gck = clk->priv;
 
+#ifdef OPTEE_SAMA7G5
+	unsigned int i;
+	for(i=0; i<8; i++)
+		if (gck->mux_table[i] == gck->parent_id)
+			return i;
+#else
 	return gck->parent_id;
+#endif
 }
 
 /* No modification of hardware as we have the flag CLK_SET_RATE_GATE set */
@@ -140,6 +158,9 @@ struct clk *
 at91_clk_register_generated(struct pmc_data *pmc,
 			    const struct clk_pcr_layout *layout,
 			    const char *name, struct clk **parents,
+#ifdef OPTEE_SAMA7G5
+			    uint32_t *mux_table,
+#endif
 			    uint8_t num_parents, uint8_t id,
 			    const struct clk_range *range,
 			    int chg_pid)
@@ -164,6 +185,9 @@ at91_clk_register_generated(struct pmc_data *pmc,
 	memcpy(&gck->range, range, sizeof(gck->range));
 	gck->chg_pid = chg_pid;
 	gck->layout = layout;
+#ifdef OPTEE_SAMA7G5
+	gck->mux_table = mux_table;
+#endif
 
 	clk->priv = gck;
 

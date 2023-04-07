@@ -56,7 +56,11 @@
 #define TCB_WPMR		0xe4
 #define  TCB_WPMR_WAKEY		0x54494d
 
+#ifdef OPTEE_SAMA7G5
+static const char *tcb_clocks[] = {"t0_clk", "gclk", "md_sclk"};
+#else
 static const char *tcb_clocks[] = {"t0_clk", "gclk", "slow_clk"};
+#endif
 static vaddr_t tcb_base;
 static uint32_t tcb_rate;
 
@@ -165,7 +169,11 @@ static TEE_Result atmel_tcb_setup(const void *fdt, int nodeoffset, int status)
 	if (status != DT_STATUS_OK_SEC)
 		return TEE_SUCCESS;
 
+#ifdef OPTEE_SAMA7G5
+	res = clk_dt_get_by_name(fdt, nodeoffset, "md_sclk", &clk);
+#else
 	res = clk_dt_get_by_name(fdt, nodeoffset, "slow_clk", &clk);
+#endif
 	if (res)
 		return res;
 

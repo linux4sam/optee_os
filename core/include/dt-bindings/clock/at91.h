@@ -38,6 +38,7 @@
 #define PMC_AUDIOIOPLL		(PMC_MAIN + 7)
 #define PMC_ETHPLL		(PMC_MAIN + 8)
 #define PMC_CPU			(PMC_MAIN + 9)
+#define PMC_MCK1		(PMC_MAIN + 10)
 
 #define AT91_SCMI_CLK_CORE_MCK		0
 #define AT91_SCMI_CLK_CORE_UTMI		1
