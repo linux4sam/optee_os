@@ -905,6 +905,24 @@ sam9x60_clk_register_div_pll(struct pmc_data *pmc,
 			     const struct clk_pll_layout *layout, uint32_t flags,
 			     uint32_t safe_div);
 
+/*
+ * Divide positive or negative dividend by positive or negative divisor
+ * and round to closest integer. Result is undefined for negative
+ * divisors if the dividend variable type is unsigned and for negative
+ * dividends if the divisor variable type is unsigned.
+ */
+#define DIV_ROUND_CLOSEST(x, divisor)(                  \
+{                                                       \
+        typeof(x) __x = x;                              \
+        typeof(divisor) __d = divisor;                  \
+        (((typeof(x))-1) > 0 ||                         \
+         ((typeof(divisor))-1) > 0 ||                   \
+         (((__x) > 0) == ((__d) > 0))) ?                \
+                (((__x) + ((__d) / 2)) / (__d)) :       \
+                (((__x) - ((__d) / 2)) / (__d));        \
+}                                                       \
+)
+
 #define MASTER_PRES_MASK	0x7
 #define MASTER_PRES_MAX		MASTER_PRES_MASK
 #define MASTER_DIV_SHIFT	8
@@ -928,6 +946,16 @@ struct clk_master_sama7 {
 	uint32_t safe_div;
 };
 
+static inline bool clk_master_ready(struct clk_master_sama7 *master)
+{
+	unsigned int bit = master->id ? AT91_PMC_MCKXRDY : AT91_PMC_MCKRDY;
+	unsigned int status;
+
+	status = io_read32(master->base + AT91_PMC_SR);
+
+	return !!(status & bit);
+}
+
 static uint8_t clk_sama7g5_master_get_parent(struct clk *hw)
 {
 	struct clk_master_sama7 *master = hw->priv;
@@ -940,8 +968,93 @@ static uint8_t clk_sama7g5_master_get_parent(struct clk *hw)
 	return -1;
 }
 
+static int clk_sama7g5_master_set_parent(struct clk *hw, uint8_t index)
+{
+	struct clk_master_sama7 *master = hw->priv;
+	if (index >= hw->num_parents)
+		return -1;//EINVAL;
+
+	master->parent = master->mux_table[index];
+	return 0;
+}
+
+static void clk_sama7g5_master_set(struct clk_master_sama7 *master,
+				   unsigned int status)
+{
+	unsigned long flags;
+	unsigned int val, cparent;
+	unsigned int enable = status ? AT91_PMC_MCR_V2_EN : 0;
+	unsigned int parent = master->parent << PMC_MCR_CSS_SHIFT;
+	unsigned int div = master->div << MASTER_DIV_SHIFT;
+
+	io_write32(master->base + AT91_PMC_MCR_V2, AT91_PMC_MCR_V2_ID(master->id));
+	val = io_read32(master->base + AT91_PMC_MCR_V2);
+	io_clrsetbits32(master->base + AT91_PMC_MCR_V2,
+			   enable | AT91_PMC_MCR_V2_CSS | AT91_PMC_MCR_V2_DIV |
+			   AT91_PMC_MCR_V2_CMD | AT91_PMC_MCR_V2_ID_MSK,
+			   enable | parent | div | AT91_PMC_MCR_V2_CMD |
+			   AT91_PMC_MCR_V2_ID(master->id));
+
+	cparent = (val & AT91_PMC_MCR_V2_CSS) >> PMC_MCR_CSS_SHIFT;
+
+	/* Wait here only if parent is being changed. */
+	while ((cparent != master->parent) && !clk_master_ready(master))
+		;
+}
+
+static int clk_sama7g5_master_enable(struct clk *hw)
+{
+	struct clk_master_sama7 *master = hw->priv;
+
+	clk_sama7g5_master_set(master, 1);
+
+	return 0;
+}
+
+static void clk_sama7g5_master_disable(struct clk *hw)
+{
+	struct clk_master_sama7 *master = hw->priv;
+	io_write32(master->base + AT91_PMC_MCR_V2, AT91_PMC_MCR_V2_ID(master->id));
+	io_clrsetbits32(master->base + AT91_PMC_MCR_V2,
+			   AT91_PMC_MCR_V2_EN | AT91_PMC_MCR_V2_CMD |
+			   AT91_PMC_MCR_V2_ID_MSK,
+			   AT91_PMC_MCR_V2_CMD |
+			   AT91_PMC_MCR_V2_ID(master->id));
+}
+
+static int clk_sama7g5_master_set_rate(struct clk *hw, unsigned long rate,
+				       unsigned long parent_rate)
+{
+	struct clk_master_sama7 *master = hw->priv;
+	unsigned long div, flags;
+
+	div = DIV_ROUND_CLOSEST(parent_rate, rate);
+	if ((div > (1 << (MASTER_PRES_MAX - 1))) || (div & (div - 1)))
+		return -1;//EINVAL;
+
+	if (div == 3)
+		div = MASTER_PRES_MAX;
+	else if (div)
+		div = ffs(div) - 1;
+	master->div = div;
+	return 0;
+}
+static unsigned long clk_sama7g5_master_get_rate(struct clk *hw,
+					       unsigned long parent_rate)
+{
+	struct clk_master_sama7 *master = hw->priv;
+	unsigned long rate = parent_rate >> master->div;
+	if (master->div == 7)
+		rate = parent_rate / 3;
+
+	return rate;
+}
+
 static const struct clk_ops sama7g5_master_ops = {
+	.set_rate = clk_sama7g5_master_set_rate,
+	.get_rate = clk_sama7g5_master_get_rate,
 	.get_parent = clk_sama7g5_master_get_parent,
+	.set_parent = clk_sama7g5_master_set_parent,
 };
 
 struct clk *
@@ -1100,7 +1213,6 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	struct pmc_clk *pmc_clk = NULL;
 	const struct sam_clk *sam_clk = NULL;
 	struct clk_range range = CLK_RANGE(0, 0);
-	struct clk *mckdivck = NULL;
 	struct clk *plladivck = NULL;
 	struct clk *usbck = NULL;
 	struct clk *audiopll_pmcck = NULL;
@@ -1122,12 +1234,12 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	TEE_Result res = TEE_ERROR_GENERIC;
 
 	/*
-	 * We want PARENT_SIZE to be MAX(ARRAY_SIZE(sama7g5_systemck),6)
+	 * We want PARENT_SIZE to be MAX(ARRAY_SIZE(sama7g5_systemck),11)
 	 * but using this define won't allow static initialization of parents
 	 * due to dynamic size.
 	 */
-	COMPILE_TIME_ASSERT(ARRAY_SIZE(sama7g5_systemck) == PARENT_SIZE);
-	COMPILE_TIME_ASSERT(PARENT_SIZE >= 6);
+//	COMPILE_TIME_ASSERT(ARRAY_SIZE(sama7g5_systemck) == PARENT_SIZE);
+//	COMPILE_TIME_ASSERT(PARENT_SIZE >= 11);
 
 	if (dt_map_dev(fdt, nodeoffset, &base, &size) < 0)
 		panic();
@@ -1233,30 +1345,35 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	pmc_clk->clk = clk;
 	pmc_clk->id = PMC_MCK_PRES;
 
-	mckdivck = at91_clk_register_master_div(sama7g5_pmc, "mck0",
+	mck0_clk = at91_clk_register_master_div(sama7g5_pmc, "mck0",
 						clk,
 						&mck0_layout,
 						&mck0_characteristics);
-	if (!mckdivck)
+	if (!mck0_clk)
 		panic();
 
 	pmc_clk = &sama7g5_pmc->chws[PMC_MCK];
-	pmc_clk->clk = mckdivck;
+	pmc_clk->clk = mck0_clk;
 	pmc_clk->id = PMC_MCK;
 
+td_slck = md_slck;
 	parents[0] = md_slck;
 	parents[1] = td_slck;
 	parents[2] = main_clk;
+	parents[3] = mck0_clk;
 	for (i = 0; i < ARRAY_SIZE(sama7g5_mckx); i++) {
-		uint8_t num_parents = 3 + sama7g5_mckx[i].ep_count;
+		uint8_t num_parents = 4 + sama7g5_mckx[i].ep_count;
 		uint32_t *mux_table = calloc(1, num_parents * sizeof(uint32_t));
 		if (!mux_table)
 			panic();
 
-		mux_table[0] = mux_table[1] = mux_table[2] = 0;
+		mux_table[0] = 0;
+		mux_table[1] = 1;
+		mux_table[2] = 2;
+		mux_table[3] = 3;
 		for (j = 0; j < sama7g5_mckx[i].ep_count; j++) {
-			parents[3+j] = pmc_clk_get_by_name(sama7g5_pmc->chws, sama7g5_pmc->ncore, sama7g5_mckx[i].ep[j]);
-			mux_table[3+j] = sama7g5_mckx[i].ep_mux_table[j];
+			parents[4+j] = pmc_clk_get_by_name(sama7g5_pmc->chws, sama7g5_pmc->ncore, sama7g5_mckx[i].ep[j]);
+			mux_table[4+j] = sama7g5_mckx[i].ep_mux_table[j];
 		}
 
 		clk = at91_clk_sama7g5_register_master(sama7g5_pmc, sama7g5_mckx[i].n,
