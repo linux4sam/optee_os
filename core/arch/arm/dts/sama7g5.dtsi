@@ -145,6 +145,7 @@
 			reg = <AT91_SCMI_CLK_CORE_MCK_PRES>;
 			clocks = <&pmc PMC_TYPE_CORE PMC_MCK_PRES>;
 		};
+/*
 		ddrck@10 {
 			reg = <AT91_SCMI_CLK_SYSTEM_DDRCK>;
 			clocks = <&pmc PMC_TYPE_SYSTEM 2>;
@@ -161,6 +162,7 @@
 			reg = <AT91_SCMI_CLK_SYSTEM_UDPCK>;
 			clocks = <&pmc PMC_TYPE_SYSTEM 7>;
 		};
+*/
 		pck0@14 {
 			reg = <AT91_SCMI_CLK_SYSTEM_PCK0>;
 			clocks = <&pmc PMC_TYPE_SYSTEM 8>;
@@ -211,8 +213,8 @@
 			reg = <AT91_SCMI_CLK_PERIPH_FLX2_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 40>;
 		};
-		flx3_clk@26 {
-			reg = <AT91_SCMI_CLK_PERIPH_FLX3_CLK>;
+		flx3_clk@31 {
+			reg = <31>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 41>;
 		};
 		flx4_clk@27 {
@@ -354,14 +356,16 @@
 			reg = <AT91_SCMI_CLK_PERIPH_MATRIX0_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 15>;
 		};
+*/
 		sdmmc0_hclk@61 {
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC0_HCLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 31>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>;
 		};
 		sdmmc1_hclk@62 {
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC1_HCLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 32>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 82>;
 		};
+/*
 		lcdc_clk@63 {
 			reg = <AT91_SCMI_CLK_PERIPH_LCDC_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 45>;
@@ -525,7 +529,7 @@
 			};
 		};
 
-		sdmmc0: sdio-host@a0000000 {
+		sdmmc0: sdio-host@e1204000 {
 			compatible = "atmel,sama5d2-sdhci";
 			reg = <0xe1204000 0x300>;
 			interrupts = <31 IRQ_TYPE_LEVEL_HIGH 0>;
@@ -537,7 +541,7 @@
 			status = "disabled";
 		};
 
-		sdmmc1: sdio-host@b0000000 {
+		sdmmc1: sdio-host@e1208000 {
 			compatible = "atmel,sama5d2-sdhci";
 			reg = <0xe1208000 0x300>;
 			interrupts = <32 IRQ_TYPE_LEVEL_HIGH 0>;

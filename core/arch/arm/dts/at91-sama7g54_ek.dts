@@ -52,7 +52,7 @@
 			status = "okay";
 		};
 
-		sdmmc0: sdio-host@a0000000 {
+		sdmmc0: sdio-host@e1204000 {
 			bus-width = <8>;
 			mmc-ddr-3_3v;
 			pinctrl-names = "default";
@@ -60,7 +60,7 @@
 			status = "okay";
 		};
 
-		sdmmc1: sdio-host@b0000000 {
+		sdmmc1: sdio-host@e1208000 {
 			bus-width = <4>;
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_sdmmc1_default>;
@@ -542,7 +542,7 @@
 	};
 
 	ahb {
-		sdmmc0: sdio-host@a0000000 {
+		sdmmc0: sdio-host@e1204000 {
 			microchip,sdcal-inverted;
 		};
 
