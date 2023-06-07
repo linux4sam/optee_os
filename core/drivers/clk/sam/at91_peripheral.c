@@ -69,6 +69,18 @@ static TEE_Result clk_sam9x5_peripheral_enable(struct clk *clk)
 			periph->layout->cmd |
 			AT91_PMC_PCR_EN);
 
+#ifdef OPTEE_SAMA7G5
+	if (periph->id ==ID_TC0_CHANNEL0) {
+		DMSG("peripheral tc0ch1 %d, tc0ch2 %d", ID_TC0_CHANNEL1, ID_TC0_CHANNEL2);
+		// TC0 channel 1
+		io_write32(periph->base + periph->layout->offset, (ID_TC0_CHANNEL1 & periph->layout->pid_mask));
+		io_clrsetbits32(periph->base + periph->layout->offset, AT91_PMC_PCR_EN, periph->layout->cmd | AT91_PMC_PCR_EN);
+		// TC0 channel 2
+		io_write32(periph->base + periph->layout->offset, (ID_TC0_CHANNEL2 & periph->layout->pid_mask));
+		io_clrsetbits32(periph->base + periph->layout->offset, AT91_PMC_PCR_EN, periph->layout->cmd | AT91_PMC_PCR_EN);
+	}
+#endif
+
 	return TEE_SUCCESS;
 }
 
