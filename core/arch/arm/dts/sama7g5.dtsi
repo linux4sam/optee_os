@@ -294,7 +294,7 @@
 		};
 		trng_clk@45 {
 			reg = <AT91_SCMI_CLK_PERIPH_TRNG_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 47>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 97>;
 		};
 		pdmic_clk@46 {
 			reg = <AT91_SCMI_CLK_PERIPH_PDMIC_CLK>;
@@ -359,11 +359,11 @@
 */
 		sdmmc0_hclk@61 {
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC0_HCLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 80>;
 		};
 		sdmmc1_hclk@62 {
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC1_HCLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 82>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>;
 		};
 /*
 		lcdc_clk@63 {
@@ -1447,15 +1447,16 @@
 			pioA: pinctrl@e0015000 {
 				compatible = "atmel,sama5d2-pinctrl";
 				reg = <0xe0015000 0x600>;
-				interrupts = <18 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <68 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <69 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <70 IRQ_TYPE_LEVEL_HIGH 7>;
+				interrupts = <11 IRQ_TYPE_LEVEL_HIGH 7>,
+					     <12 IRQ_TYPE_LEVEL_HIGH 7>,
+					     <13 IRQ_TYPE_LEVEL_HIGH 7>,
+					     <14 IRQ_TYPE_LEVEL_HIGH 7>,
+					     <15 IRQ_TYPE_LEVEL_HIGH 7>;
 				interrupt-controller;
 				#interrupt-cells = <2>;
 				gpio-controller;
 				#gpio-cells = <2>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 18>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 11>;
 			};
 
 			pioBU: secumod@e0004000 {
