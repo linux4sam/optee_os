@@ -1160,6 +1160,7 @@ static const struct {
 	{ .clk = { .n = "flx9_clk",  .id = ID_FLEXCOM9 },  .bus = MSBC_MCK1, },
 	{ .clk = { .n = "flx10_clk", .id = ID_FLEXCOM10 }, .bus = MSBC_MCK1, },
 	{ .clk = { .n = "flx11_clk", .id = ID_FLEXCOM11 }, .bus = MSBC_MCK1, },
+	{ .clk = { .n = "trng_clk",  .id = ID_TRNG},       .bus = MSBC_MCK1, },
 	{ .clk = { .n = "gmac0_clk", .id = ID_GMAC0 },     .bus = MSBC_MCK1, },
 	{ .clk = { .n = "gmac1_clk", .id = ID_GMAC1 },     .bus = MSBC_MCK1, },
 	{ .clk = { .n = "tcb0_clk", .id = ID_TC0_CHANNEL0 }, .bus = MSBC_MCK1, },

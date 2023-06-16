@@ -1376,8 +1376,8 @@
 			trng@e2010000 {
 				compatible = "atmel,at91sam9g45-trng";
 				reg = <0xe2010000 0x100>;
-				interrupts = <47 IRQ_TYPE_LEVEL_HIGH 0>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 47>;
+				interrupts = <97 IRQ_TYPE_LEVEL_HIGH 0>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 97>;
 				status = "disabled";
 				secure-status = "okay";
 			};

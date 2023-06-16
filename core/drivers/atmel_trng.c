@@ -41,7 +41,7 @@ static uint32_t atmel_trng_read32(void)
 
 	exceptions = cpu_spin_lock_xsave(&trng_lock);
 
-//	while (!io_read32(trng_base + TRNG_ISR))
+	while (!io_read32(trng_base + TRNG_ISR))
 		;
 
 	value = io_read32(trng_base + TRNG_ODATA);
