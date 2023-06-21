@@ -139,6 +139,7 @@ static TEE_Result sam9x60_frac_pll_set(struct sam9x60_frac *frac)
 	if (sam9x60_frac_pll_ready(regmap, core->id) &&
 	    (cmul == frac->mul && cfrac == frac->frac))
 		return 0;
+
 	/* Recommended value for PMC_PLL_ACR */
 	if (core->charac->upll)
 		val = AT91_PMC_PLL_ACR_DEFAULT_UPLL;
@@ -267,15 +268,49 @@ static TEE_Result sam9x60_frac_pll_set_rate(struct clk *hw, unsigned long rate,
 {
 	struct sam9x60_frac *frac = hw->priv;
 
-	return sam9x60_frac_pll_compute_mul_frac(frac, rate, parent_rate, true);
+	sam9x60_frac_pll_compute_mul_frac(frac, rate, parent_rate, true);
+	return 0;
 }
 
 static int sam9x60_frac_pll_set_rate_chg(struct clk *hw, unsigned long rate,
 					 unsigned long parent_rate)
 {
 	int ret;
-	// TODO
-	return ret;
+	struct sam9x60_frac *frac = hw->priv;
+	struct sam9x60_pll_core *core = &frac->core;
+	u32 regmap = core->base;
+	unsigned int val, cfrac, cmul;
+
+	ret = sam9x60_frac_pll_compute_mul_frac(frac, rate, parent_rate, true);
+	if (ret <= 0)
+		return -1;
+
+	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT, AT91_PMC_PLL_UPDT_ID_MSK, core->id);
+	val = io_read32(regmap + AT91_PMC_PLL_CTRL1);
+	cmul = (val & core->layout->mul_mask) >> core->layout->mul_shift;
+	cfrac = (val & core->layout->frac_mask) >> core->layout->frac_shift;
+
+	io_write32(regmap + AT91_PMC_PLL_CTRL1,
+		     (frac->mul << core->layout->mul_shift) |
+		     (frac->frac << core->layout->frac_shift));
+
+	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
+			   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
+			   AT91_PMC_PLL_UPDT_UPDATE | core->id);
+
+	io_clrsetbits32(regmap + AT91_PMC_PLL_CTRL0,
+			   AT91_PMC_PLL_CTRL0_ENLOCK | AT91_PMC_PLL_CTRL0_ENPLL,
+			   AT91_PMC_PLL_CTRL0_ENLOCK |
+			   AT91_PMC_PLL_CTRL0_ENPLL);
+
+	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
+			   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
+			   AT91_PMC_PLL_UPDT_UPDATE | core->id);
+
+	while (!sam9x60_pll_ready(regmap, core->id))
+		;
+
+	return 0;
 }
 
 static const struct clk_ops sam9x60_frac_pll_ops = {
@@ -438,10 +473,7 @@ sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
 	if (!frac)
 		return NULL;
 
-	if (flags & CLK_SET_RATE_GATE)
-		hw = clk_alloc(name, &sam9x60_frac_pll_ops, &parent, 1);
-	else
-		hw = clk_alloc(name, &sam9x60_frac_pll_ops_chg, &parent, 1);
+	hw = clk_alloc(name, &sam9x60_frac_pll_ops_chg, &parent, 1);
 	if (!hw) {
 		free(frac);
 		return NULL;
