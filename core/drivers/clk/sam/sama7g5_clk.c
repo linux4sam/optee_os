@@ -888,6 +888,7 @@ static const struct clk_programmable_layout programmable_layout = {
 static const struct clk_pcr_layout sama7g5_pcr_layout = {
 	.offset = 0x88,
 	.cmd = BIT(31),
+	.div_mask = GENMASK(27, 20),
 	.gckcss_mask = GENMASK(12, 8),
 	.pid_mask = GENMASK(6, 0),
 };
@@ -1231,6 +1232,7 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	struct clk *td_slck = NULL;
 	struct clk *mck0_clk = NULL;
 	struct clk *pll_div_clk[PLL_ID_MAX] = {NULL};
+	struct clk *pll_frac_clk[PLL_ID_MAX] = {NULL};
 
 	TEE_Result res = TEE_ERROR_GENERIC;
 
@@ -1308,6 +1310,7 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 					sama7g5_plls[i][j].c,
 					sama7g5_plls[i][j].l,
 					sama7g5_plls[i][j].f);
+				pll_frac_clk[i] = clk;
 			} else {
 				if (sama7g5_plls[i][j].t != PLL_TYPE_DIV)
 					panic();
@@ -1324,8 +1327,10 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 			if (!clk)
 				panic();
 
-			if (sama7g5_plls[i][j].eid)
+			if (sama7g5_plls[i][j].eid) {
 				sama7g5_pmc->chws[sama7g5_plls[i][j].eid].clk = clk;
+				sama7g5_pmc->chws[sama7g5_plls[i][j].eid].id = sama7g5_plls[i][j].eid;
+			}
 		}
 		pll_div_clk[i] = sama7g5_pmc->chws[sama7g5_plls[i][PLL_TYPE_DIV].eid].clk;
 	}
@@ -1471,6 +1476,8 @@ td_slck = md_slck;
 		pmc_clk->id = sama7g5_gck[i].id;
 	}
 
+	clk_set_rate(pll_frac_clk[PLL_ID_ETH], 625000000);
+	clk_set_rate(pll_div_clk[PLL_ID_ETH], 625000000);
 
 	clk_dt_register_clk_provider(fdt, nodeoffset, clk_dt_pmc_get, sama7g5_pmc);
 
