@@ -137,7 +137,15 @@
 		};
 		macb0_clk@18 {
 			reg = <AT91_SCMI_CLK_PERIPH_MACB0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 53>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 51>;
+		};
+		macb0_tx_clk@83 {
+			reg = <AT91_SCMI_CLK_GCK_MACB0_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 51>;
+		};
+		macb0_tsu_clk@84 {
+			reg = <AT91_SCMI_CLK_GCK_MACB0_TSU>;
+			clocks = <&pmc PMC_TYPE_GCK 53>;
 		};
 		tdes_clk@19 {
 			reg = <AT91_SCMI_CLK_PERIPH_TDES_CLK>;
@@ -486,16 +494,14 @@
 				secure-status = "okay";
 			};
 
-			macb0: ethernet@f8008000 {
+			macb0: ethernet@e2800000 {
 				compatible = "atmel,sama5d2-gem";
-				reg = <0xf8008000 0x1000>;
-				interrupts = <5  IRQ_TYPE_LEVEL_HIGH 3		/* Queue 0 */
-					      66 IRQ_TYPE_LEVEL_HIGH 3          /* Queue 1 */
-					      67 IRQ_TYPE_LEVEL_HIGH 3>;        /* Queue 2 */
-				#address-cells = <1>;
-				#size-cells = <0>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 5>, <&pmc PMC_TYPE_PERIPHERAL 5>;
-				clock-names = "hclk", "pclk";
+				reg = <0xe2800000 0x1000>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 51>, <&pmc PMC_TYPE_PERIPHERAL 51>, <&pmc PMC_TYPE_GCK 51>, <&pmc PMC_TYPE_GCK 53>;
+				clock-names = "pclk", "hclk", "tx_clk", "tsu_clk";
+				assigned-clocks = <&pmc PMC_TYPE_GCK 51>;
+				assigned-clock-parents = <&pmc PMC_TYPE_CORE 11>; /* eth pll div. */
+				assigned-clock-rates = <125000000>;
 				status = "disabled";
 			};
 

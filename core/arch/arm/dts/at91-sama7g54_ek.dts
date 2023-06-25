@@ -16,6 +16,10 @@
 
 	ahb {
 		apb {
+			macb0: ethernet@e2800000 {
+				status = "okay";
+			};
+
 			tcb0: timer@f800c000 {
 				timer0: timer@0 {
 					compatible = "atmel,tcb-timer";
