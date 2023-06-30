@@ -185,6 +185,10 @@
 			reg = <AT91_SCMI_CLK_PERIPH_FLX4_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 42>;
 		};
+		flx8_clk@85 {
+			reg = <AT91_SCMI_CLK_PERIPH_FLX8_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 46>;
+		};
 /*
 		uart0_clk@28 {
 			reg = <AT91_SCMI_CLK_PERIPH_UART0_CLK>;
