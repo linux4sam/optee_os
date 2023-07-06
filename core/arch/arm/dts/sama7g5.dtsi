@@ -13,9 +13,8 @@
 / {
 	#address-cells = <1>;
 	#size-cells = <1>;
-	model = "Atmel SAMA5D2 family SoC";
-	compatible = "atmel,sama5d2";
-	interrupt-parent = <&aic>;
+	model = "Microchip SAMA7G5 family SoC";
+	compatible = "microchip,sama7g5";
 
 	cpus {
 		#address-cells = <1>;
@@ -28,11 +27,6 @@
 			clocks = <&pmc PMC_TYPE_CORE PMC_MCK_PRES>;
 			clock-names = "cpu";
 		};
-	};
-
-	memory@60000000 {
-		device_type = "memory";
-		reg = <0x60000000 0x80000000>;
 	};
 
 	clocks {
@@ -101,24 +95,6 @@
 			reg = <AT91_SCMI_CLK_CORE_MCK_PRES>;
 			clocks = <&pmc PMC_TYPE_CORE PMC_MCK_PRES>;
 		};
-/*
-		ddrck@10 {
-			reg = <AT91_SCMI_CLK_SYSTEM_DDRCK>;
-			clocks = <&pmc PMC_TYPE_SYSTEM 2>;
-		};
-		lcdck@11 {
-			reg = <AT91_SCMI_CLK_SYSTEM_LCDCK>;
-			clocks = <&pmc PMC_TYPE_SYSTEM 3>;
-		};
-		uhpck@12 {
-			reg = <AT91_SCMI_CLK_SYSTEM_UHPCK>;
-			clocks = <&pmc PMC_TYPE_SYSTEM 6>;
-		};
-		udpck@13 {
-			reg = <AT91_SCMI_CLK_SYSTEM_UDPCK>;
-			clocks = <&pmc PMC_TYPE_SYSTEM 7>;
-		};
-*/
 		pck0@14 {
 			reg = <AT91_SCMI_CLK_SYSTEM_PCK0>;
 			clocks = <&pmc PMC_TYPE_SYSTEM 8>;
@@ -131,10 +107,11 @@
 			reg = <AT91_SCMI_CLK_SYSTEM_PCK2>;
 			clocks = <&pmc PMC_TYPE_SYSTEM 10>;
 		};
-		iscck@17 {
-			reg = <AT91_SCMI_CLK_SYSTEM_ISCCK>;
-			clocks = <&pmc PMC_TYPE_SYSTEM 18>;
-		};
+		pck3@AT91_SCMI_CLK_SYSTEM_PCK3 { reg = <AT91_SCMI_CLK_SYSTEM_PCK3>; clocks = <&pmc PMC_TYPE_SYSTEM 11>; };
+		pck4@AT91_SCMI_CLK_SYSTEM_PCK4 { reg = <AT91_SCMI_CLK_SYSTEM_PCK4>; clocks = <&pmc PMC_TYPE_SYSTEM 12>; };
+		pck5@AT91_SCMI_CLK_SYSTEM_PCK5 { reg = <AT91_SCMI_CLK_SYSTEM_PCK5>; clocks = <&pmc PMC_TYPE_SYSTEM 13>; };
+		pck6@AT91_SCMI_CLK_SYSTEM_PCK6 { reg = <AT91_SCMI_CLK_SYSTEM_PCK6>; clocks = <&pmc PMC_TYPE_SYSTEM 14>; };
+		pck7@AT91_SCMI_CLK_SYSTEM_PCK7 { reg = <AT91_SCMI_CLK_SYSTEM_PCK7>; clocks = <&pmc PMC_TYPE_SYSTEM 15>; };
 		macb0_clk@18 {
 			reg = <AT91_SCMI_CLK_PERIPH_MACB0_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 51>;
@@ -151,16 +128,10 @@
 			reg = <AT91_SCMI_CLK_PERIPH_TDES_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 96>;
 		};
-/*
-		matrix1_clk@20 {
-			reg = <AT91_SCMI_CLK_PERIPH_MATRIX1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 14>;
-		};
 		hsmc_clk@21 {
 			reg = <AT91_SCMI_CLK_PERIPH_HSMC_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 21>;
 		};
-*/
 		pioa_clk@22 {
 			reg = <AT91_SCMI_CLK_PERIPH_PIOA_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 11>;
@@ -185,48 +156,13 @@
 			reg = <AT91_SCMI_CLK_PERIPH_FLX4_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 42>;
 		};
-		flx8_clk@85 {
-			reg = <AT91_SCMI_CLK_PERIPH_FLX8_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 46>;
-		};
-/*
-		uart0_clk@28 {
-			reg = <AT91_SCMI_CLK_PERIPH_UART0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 24>;
-		};
-		uart1_clk@29 {
-			reg = <AT91_SCMI_CLK_PERIPH_UART1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 25>;
-		};
-		uart2_clk@30 {
-			reg = <AT91_SCMI_CLK_PERIPH_UART2_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 26>;
-		};
-		uart3_clk@31 {
-			reg = <AT91_SCMI_CLK_PERIPH_UART3_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 27>;
-		};
-		uart4_clk@32 {
-			reg = <AT91_SCMI_CLK_PERIPH_UART4_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 28>;
-		};
-		twi0_clk@33 {
-			reg = <AT91_SCMI_CLK_PERIPH_TWI0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 29>;
-		};
-		twi1_clk@34 {
-			reg = <AT91_SCMI_CLK_PERIPH_TWI1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 30>;
-		};
-		spi0_clk@35 {
-			reg = <AT91_SCMI_CLK_PERIPH_SPI0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 33>;
-		};
-		spi1_clk@36 {
-			reg = <AT91_SCMI_CLK_PERIPH_SPI1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 34>;
-		};
-*/
+		flx5_clk@AT91_SCMI_CLK_PERIPH_FLX5_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX5_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 43>; };
+		flx6_clk@AT91_SCMI_CLK_PERIPH_FLX6_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX6_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 44>; };
+		flx7_clk@AT91_SCMI_CLK_PERIPH_FLX7_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX7_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 45>; };
+		flx8_clk@AT91_SCMI_CLK_PERIPH_FLX8_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX8_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 46>; };
+		flx9_clk@AT91_SCMI_CLK_PERIPH_FLX9_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX9_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 47>; };
+		flx10_clk@AT91_SCMI_CLK_PERIPH_FLX10_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX10_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 48>; };
+		flx11_clk@AT91_SCMI_CLK_PERIPH_FLX11_CLK { reg = <AT91_SCMI_CLK_PERIPH_FLX11_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 49>; };
 		tcb0_clk@37 {
 			reg = <AT91_SCMI_CLK_PERIPH_TCB0_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 88>;
@@ -239,92 +175,94 @@
 			reg = <AT91_SCMI_CLK_PERIPH_PWM_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 77>;
 		};
-/*
 		adc_clk@40 {
 			reg = <AT91_SCMI_CLK_PERIPH_ADC_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 40>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 26>;
 		};
 		uhphs_clk@41 {
 			reg = <AT91_SCMI_CLK_PERIPH_UHPHS_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 41>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 106>;
 		};
-		udphs_clk@42 {
-			reg = <AT91_SCMI_CLK_PERIPH_UDPHS_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 42>;
+		udphsa_clk@AT91_SCMI_CLK_PERIPH_UDPHSA_CLK {
+			reg = <AT91_SCMI_CLK_PERIPH_UDPHSA_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 104>;
+		};
+		udphsb_clk@AT91_SCMI_CLK_PERIPH_UDPHSB_CLK {
+			reg = <AT91_SCMI_CLK_PERIPH_UDPHSB_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 105>;
 		};
 		ssc0_clk@43 {
 			reg = <AT91_SCMI_CLK_PERIPH_SSC0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 43>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 86>;
 		};
 		ssc1_clk@44 {
 			reg = <AT91_SCMI_CLK_PERIPH_SSC1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 44>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 87>;
 		};
 		trng_clk@45 {
 			reg = <AT91_SCMI_CLK_PERIPH_TRNG_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 97>;
 		};
-		pdmic_clk@46 {
-			reg = <AT91_SCMI_CLK_PERIPH_PDMIC_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 48>;
-		};
 		securam_clk@47 {
 			reg = <AT91_SCMI_CLK_PERIPH_SECURAM_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 51>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 18>;
 		};
 		i2s0_clk@48 {
 			reg = <AT91_SCMI_CLK_PERIPH_I2S0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 54>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 57>;
 		};
 		i2s1_clk@49 {
 			reg = <AT91_SCMI_CLK_PERIPH_I2S1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 55>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 58>;
 		};
 		can0_clk@50 {
 			reg = <AT91_SCMI_CLK_PERIPH_CAN0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 56>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 61>;
 		};
 		can1_clk@51 {
 			reg = <AT91_SCMI_CLK_PERIPH_CAN1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 57>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 62>;
 		};
-		ptc_clk@52 {
-			reg = <AT91_SCMI_CLK_PERIPH_PTC_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 58>;
-		};
-		classd_clk@53 {
-			reg = <AT91_SCMI_CLK_PERIPH_CLASSD_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 59>;
-		};
+		can2_clk@AT91_SCMI_CLK_PERIPH_CAN2_CLK { reg = <AT91_SCMI_CLK_PERIPH_CAN2_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 63>; };
+		can3_clk@AT91_SCMI_CLK_PERIPH_CAN3_CLK { reg = <AT91_SCMI_CLK_PERIPH_CAN3_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 64>; };
+		can4_clk@AT91_SCMI_CLK_PERIPH_CAN4_CLK { reg = <AT91_SCMI_CLK_PERIPH_CAN4_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 65>; };
+		can5_clk@AT91_SCMI_CLK_PERIPH_CAN5_CLK { reg = <AT91_SCMI_CLK_PERIPH_CAN5_CLK>; clocks = <&pmc PMC_TYPE_PERIPHERAL 66>; };
 		dma0_clk@54 {
 			reg = <AT91_SCMI_CLK_PERIPH_DMA0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 6>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 22>;
 		};
 		dma1_clk@55 {
 			reg = <AT91_SCMI_CLK_PERIPH_DMA1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 7>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 23>;
+		};
+		dma2_clk@AT91_SCMI_CLK_PERIPH_DMA2_CLK {
+			reg = <AT91_SCMI_CLK_PERIPH_DMA2_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 24>;
+		};
+		spdifrx_clk@AT91_SCMI_CLK_PERIPH_SPDIFRX_CLK {
+			reg = <AT91_SCMI_CLK_PERIPH_SPDIFRX_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 84>;
+		};
+		spdiftx_clk@AT91_SCMI_CLK_PERIPH_SPDIFTX_CLK {
+			reg = <AT91_SCMI_CLK_PERIPH_SPDIFTX_CLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 85>;
+		};
+		spdifrx_gclk@AT91_SCMI_CLK_GCK_SPDIFRX_GCLK {
+			reg = <AT91_SCMI_CLK_GCK_SPDIFRX_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 84>;
+		};
+		spdiftx_gclk@AT91_SCMI_CLK_GCK_SPDIFTX_GCLK {
+			reg = <AT91_SCMI_CLK_GCK_SPDIFTX_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 85>;
 		};
 		aes_clk@56 {
 			reg = <AT91_SCMI_CLK_PERIPH_AES_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 9>;
-		};
-		aesb_clk@57 {
-			reg = <AT91_SCMI_CLK_PERIPH_AESB_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 10>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 27>;
 		};
 		sha_clk@58 {
 			reg = <AT91_SCMI_CLK_PERIPH_SHA_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 12>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 83>;
 		};
-		mpddr_clk@59 {
-			reg = <AT91_SCMI_CLK_PERIPH_MPDDR_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 13>;
-		};
-		matrix0_clk@60 {
-			reg = <AT91_SCMI_CLK_PERIPH_MATRIX0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 15>;
-		};
-*/
 		sdmmc0_hclk@61 {
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC0_HCLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 80>;
@@ -333,24 +271,30 @@
 			reg = <AT91_SCMI_CLK_PERIPH_SDMMC1_HCLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>;
 		};
-/*
-		lcdc_clk@63 {
-			reg = <AT91_SCMI_CLK_PERIPH_LCDC_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 45>;
+		sdmmc2_hclk@AT91_SCMI_CLK_PERIPH_SDMMC2_HCLK {
+			reg = <AT91_SCMI_CLK_PERIPH_SDMMC2_HCLK>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 82>;
 		};
 		isc_clk@64 {
 			reg = <AT91_SCMI_CLK_PERIPH_ISC_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 46>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 56>;
 		};
 		qspi0_clk@65 {
 			reg = <AT91_SCMI_CLK_PERIPH_QSPI0_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 52>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 78>;
 		};
 		qspi1_clk@66 {
 			reg = <AT91_SCMI_CLK_PERIPH_QSPI1_CLK>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 53>;
+			clocks = <&pmc PMC_TYPE_PERIPHERAL 79>;
 		};
-*/
+		qspi0_gclk@65 {
+			reg = <AT91_SCMI_CLK_GCK_QSPI0_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 78>;
+		};
+		qspi1_gclk@66 {
+			reg = <AT91_SCMI_CLK_GCK_QSPI1_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 79>;
+		};
 		sdmmc0_gclk@67 {
 			reg = <AT91_SCMI_CLK_GCK_SDMMC0_GCLK>;
 			clocks = <&pmc PMC_TYPE_GCK 80>;
@@ -358,6 +302,10 @@
 		sdmmc1_gclk@68 {
 			reg = <AT91_SCMI_CLK_GCK_SDMMC1_GCLK>;
 			clocks = <&pmc PMC_TYPE_GCK 81>;
+		};
+		sdmmc2_gclk@AT91_SCMI_CLK_GCK_SDMMC2_GCLK {
+			reg = <AT91_SCMI_CLK_GCK_SDMMC2_GCLK>;
+			clocks = <&pmc PMC_TYPE_GCK 82>;
 		};
 		tcb0_gclk@69 {
 			reg = <AT91_SCMI_CLK_GCK_TCB0_GCLK>;
@@ -367,56 +315,26 @@
 			reg = <AT91_SCMI_CLK_GCK_TCB1_GCLK>;
 			clocks = <&pmc PMC_TYPE_GCK 91>;
 		};
-/*
-		pwm_gclk@71 {
-			reg = <AT91_SCMI_CLK_GCK_PWM_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 38>;
-		};
-		isc_gclk@72 {
-			reg = <AT91_SCMI_CLK_GCK_ISC_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 46>;
-		};
-		pdmic_gclk@73 {
-			reg = <AT91_SCMI_CLK_GCK_PDMIC_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 48>;
-		};
 		i2s0_gclk@74 {
 			reg = <AT91_SCMI_CLK_GCK_I2S0_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 54>;
+			clocks = <&pmc PMC_TYPE_GCK 57>;
 		};
 		i2s1_gclk@75 {
 			reg = <AT91_SCMI_CLK_GCK_I2S1_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 55>;
+			clocks = <&pmc PMC_TYPE_GCK 58>;
 		};
 		can0_gclk@76 {
 			reg = <AT91_SCMI_CLK_GCK_CAN0_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 56>;
+			clocks = <&pmc PMC_TYPE_GCK 61>;
 		};
 		can1_gclk@77 {
 			reg = <AT91_SCMI_CLK_GCK_CAN1_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 57>;
+			clocks = <&pmc PMC_TYPE_GCK 62>;
 		};
-		classd_gclk@78 {
-			reg = <AT91_SCMI_CLK_GCK_CLASSD_GCLK>;
-			clocks = <&pmc PMC_TYPE_GCK 59>;
-		};
-		prog0@79 {
-			reg = <AT91_SCMI_CLK_PROG_PROG0>;
-			clocks = <&pmc PMC_TYPE_PROGRAMMABLE 0>;
-		};
-		prog1@80 {
-			reg = <AT91_SCMI_CLK_PROG_PROG1>;
-			clocks = <&pmc PMC_TYPE_PROGRAMMABLE 1>;
-		};
-		prog2@81 {
-			reg = <AT91_SCMI_CLK_PROG_PROG2>;
-			clocks = <&pmc PMC_TYPE_PROGRAMMABLE 2>;
-		};
-		slowck_32k@82 {
-			reg = <AT91_SCMI_CLK_SCKC_SLOWCK_32K>;
-			clocks = <&clk32k>;
-		};
-*/
+		can2_gclk@AT91_SCMI_CLK_GCK_CAN2_GCLK { reg = <AT91_SCMI_CLK_GCK_CAN2_GCLK>; clocks = <&pmc PMC_TYPE_GCK 63>; };
+		can3_gclk@AT91_SCMI_CLK_GCK_CAN3_GCLK { reg = <AT91_SCMI_CLK_GCK_CAN3_GCLK>; clocks = <&pmc PMC_TYPE_GCK 64>; };
+		can4_gclk@AT91_SCMI_CLK_GCK_CAN4_GCLK { reg = <AT91_SCMI_CLK_GCK_CAN4_GCLK>; clocks = <&pmc PMC_TYPE_GCK 65>; };
+		can5_gclk@AT91_SCMI_CLK_GCK_CAN5_GCLK { reg = <AT91_SCMI_CLK_GCK_CAN5_GCLK>; clocks = <&pmc PMC_TYPE_GCK 66>; };
 	};
 
 	ahb {
@@ -425,66 +343,11 @@
 		#size-cells = <1>;
 		ranges;
 
-		sdmmc0: sdio-host@e1204000 {
-			compatible = "atmel,sama5d2-sdhci";
-			reg = <0xe1204000 0x300>;
-			interrupts = <31 IRQ_TYPE_LEVEL_HIGH 0>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 80>, <&pmc PMC_TYPE_GCK 80>, <&pmc PMC_TYPE_CORE PMC_MAIN>;
-			clock-names = "hclock", "multclk", "baseclk";
-			assigned-clocks = <&pmc PMC_TYPE_GCK 80>;
-			assigned-clock-parents = <&pmc PMC_TYPE_CORE PMC_UTMI>;
-//			assigned-clock-rates = <480000000>;
-			status = "disabled";
-		};
-
-		sdmmc1: sdio-host@e1208000 {
-			compatible = "atmel,sama5d2-sdhci";
-			reg = <0xe1208000 0x300>;
-			interrupts = <32 IRQ_TYPE_LEVEL_HIGH 0>;
-			clocks = <&pmc PMC_TYPE_PERIPHERAL 81>, <&pmc PMC_TYPE_GCK 81>, <&pmc PMC_TYPE_CORE PMC_MAIN>;
-			clock-names = "hclock", "multclk", "baseclk";
-			assigned-clocks = <&pmc PMC_TYPE_GCK 81>;
-			assigned-clock-parents = <&pmc PMC_TYPE_CORE PMC_UTMI>;
-//			assigned-clock-rates = <480000000>;
-			status = "disabled";
-		};
-
-		nfc_io: nfc-io@c0000000 {
-			compatible = "atmel,sama5d3-nfc-io", "syscon";
-			reg = <0xc0000000 0x8000000>;
-		};
-
 		apb {
 			compatible = "simple-bus";
 			#address-cells = <1>;
 			#size-cells = <1>;
 			ranges;
-
-			ramc0: ramc@f000c000 {
-				compatible = "atmel,sama5d3-ddramc";
-				reg = <0xf000c000 0x200>;
-				clocks = <&pmc PMC_TYPE_SYSTEM 2>, <&pmc PMC_TYPE_PERIPHERAL 13>;
-				clock-names = "ddrck", "mpddr";
-			};
-
-			dma0: dma-controller@f0010000 {
-				compatible = "atmel,sama5d4-dma";
-				reg = <0xf0010000 0x1000>;
-				interrupts = <6 IRQ_TYPE_LEVEL_HIGH 0>;
-				#dma-cells = <1>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 6>;
-				clock-names = "dma_clk";
-			};
-
-			/* Place dma1 here despite its address */
-			dma1: dma-controller@f0004000 {
-				compatible = "atmel,sama5d4-dma";
-				reg = <0xf0004000 0x1000>;
-				interrupts = <7 IRQ_TYPE_LEVEL_HIGH 0>;
-				#dma-cells = <1>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 7>;
-				clock-names = "dma_clk";
-			};
 
 			pmc: pmc@e0018000 {
 				compatible = "atmel,sama7g5-pmc", "syscon";
@@ -518,52 +381,9 @@
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 35>, <&pmc PMC_TYPE_GCK 35>, <&clk32k>;
 				clock-names = "t0_clk", "gclk", "md_sclk";
 			};
-
-			tcb1: timer@f8010000 {
-				compatible = "atmel,sama5d2-tcb", "simple-mfd", "syscon";
-				#address-cells = <1>;
-				#size-cells = <0>;
-				reg = <0xf8010000 0x100>;
-				interrupts = <36 IRQ_TYPE_LEVEL_HIGH 0>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 36>, <&pmc PMC_TYPE_GCK 36>, <&clk32k>;
-				clock-names = "t0_clk", "gclk", "md_sclk";
-				status = "disabled"; secure-status = "okay";     /* Secure only */
-			};
-			securam: sram@f8044000 {
-				compatible = "atmel,sama5d2-securam", "mmio-sram";
-				reg = <0xf8044000 0x1420>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 51>;
-				#address-cells = <1>;
-				#size-cells = <1>;
-				no-memory-wc;
-				ranges = <0 0xf8044000 0x1420>;
-				status = "disabled";
-				secure-status = "okay";
-			};
-
-			reset_controller: rstc@f8048000 {
-				compatible = "atmel,sama5d3-rstc";
-				reg = <0xf8048000 0x10>;
-				clocks = <&clk32k>;
-				status = "disabled";
-				secure-status = "okay";
-			};
-
-			shutdown_controller: shdwc@e001d010 {
-				compatible = "atmel,sama5d2-shdwc";
-				reg = <0xe001d010 0x10>;
-				clocks = <&clk32k>;
-				#address-cells = <1>;
-				#size-cells = <0>;
-				atmel,wakeup-rtc-timer;
-				status = "disabled";
-				secure-status = "okay";
-			};
-
 			clk32k: sckc@e001d050 {
 				compatible = "atmel,sama7g5-sckc";
 				reg = <0xe001d050 0x4>;
-
 //				clocks = <&td_slck>;
 				clocks = <&slow_xtal>;
 				#clock-cells = <0>;
@@ -580,32 +400,13 @@
 				secure-status = "okay";
 			};
 			trng@e2010000 {
-				compatible = "atmel,at91sam9g45-trng";
+				compatible = "microchip,sama7g5-trng", "atmel,at91sam9g45-trng";
 				reg = <0xe2010000 0x100>;
 				interrupts = <97 IRQ_TYPE_LEVEL_HIGH 0>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 97>;
 				status = "disabled";
 				secure-status = "okay";
 			};
-
-			aic: interrupt-controller@fc020000 {
-				#interrupt-cells = <3>;
-				compatible = "atmel,sama5d2-aic";
-				interrupt-controller;
-				reg = <0xfc020000 0x200>;
-				atmel,external-irqs = <49>;
-			};
-
-			eic: interrupt-controller@e1628000 {
-				#interrupt-cells = <3>;
-				compatible = "atmel,sama5d2-saic";
-				interrupt-controller;
-				reg = <0xe1628000 0x200>;
-				atmel,external-irqs = <49>;
-				status = "disabled";
-				secure-status = "okay";
-			};
-
 			pioA: pinctrl@e0015000 {
 				compatible = "atmel,sama5d2-pinctrl";
 				reg = <0xe0015000 0x600>;
