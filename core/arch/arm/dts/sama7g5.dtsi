@@ -177,8 +177,8 @@
 			reg = <AT91_SCMI_CLK_PERIPH_FLX2_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 40>;
 		};
-		flx3_clk@31 {
-			reg = <31>;
+		flx3_clk@26 {
+			reg = <AT91_SCMI_CLK_PERIPH_FLX3_CLK>;
 			clocks = <&pmc PMC_TYPE_PERIPHERAL 41>;
 		};
 		flx4_clk@27 {
