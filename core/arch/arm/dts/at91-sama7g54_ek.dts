@@ -14,26 +14,6 @@
 	model = "Microchip SAMA7G5-EK";
 	compatible = "microchip,sama7g5ek", "microchip,sama7g5", "microchip,sama7";
 
-	ahb {
-		apb {
-			macb0: ethernet@e2800000 {
-				status = "okay";
-			};
-
-			tcb0: timer@f800c000 {
-				timer0: timer@0 {
-					compatible = "atmel,tcb-timer";
-					reg = <0>;
-				};
-
-				timer1: timer@1 {
-					compatible = "atmel,tcb-timer";
-					reg = <1>;
-				};
-			};
-		};
-	};
-
 	clocks {
 		slow_xtal {
 			clock-frequency = <32768>;
@@ -42,5 +22,21 @@
 		main_xtal {
 			clock-frequency = <24000000>;
 		};
+	};
+};
+
+&macb0 {
+	status = "okay";
+};
+
+&tcb0 {
+	timer0: timer@0 {
+		compatible = "atmel,tcb-timer";
+		reg = <0>;
+	};
+
+	timer1: timer@1 {
+		compatible = "atmel,tcb-timer";
+		reg = <1>;
 	};
 };

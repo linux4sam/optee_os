@@ -57,7 +57,7 @@
 #define  TCB_WPMR_WAKEY		0x54494d
 
 #ifdef OPTEE_SAMA7G5
-static const char *tcb_clocks[] = {"t0_clk", "gclk", "md_slck"};
+static const char *tcb_clocks[] = {"t0_clk", "t1_clk", "t2_clk", "md_slck"};
 #else
 static const char *tcb_clocks[] = {"t0_clk", "gclk", "slow_clk"};
 #endif
@@ -151,9 +151,6 @@ static void atmel_tcb_configure(void)
 
 static TEE_Result atmel_tcb_setup(const void *fdt, int nodeoffset, int status)
 {
-#ifdef OPTEE_SAMA7G5
-	return TEE_SUCCESS;
-#endif
 	size_t size = 0;
 	TEE_Result res = TEE_ERROR_GENERIC;
 	unsigned int peri_id = AT91C_ID_TC0;

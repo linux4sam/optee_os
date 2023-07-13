@@ -371,14 +371,13 @@
 				status = "disabled";
 			};
 
-			tcb0: timer@f800c000 {
+			tcb0: timer@e2814000 {
 				compatible = "atmel,sama5d2-tcb", "simple-mfd", "syscon";
 				#address-cells = <1>;
 				#size-cells = <0>;
-				reg = <0xf800c000 0x100>;
-				interrupts = <35 IRQ_TYPE_LEVEL_HIGH 0>;
-				clocks = <&pmc PMC_TYPE_PERIPHERAL 35>, <&pmc PMC_TYPE_GCK 35>, <&clk32k 1>;
-				clock-names = "t0_clk", "gclk", "md_sclk";
+				reg = <0xe2814000 0x100>;
+				clocks = <&pmc PMC_TYPE_PERIPHERAL 88>, <&pmc PMC_TYPE_PERIPHERAL 89>, <&pmc PMC_TYPE_PERIPHERAL 90>, <&clk32k 1>;
+				clock-names = "t0_clk", "t1_clk", "t2_clk", "md_slck";
 			};
 			clk32k: sckc@e001d050 {
 				compatible = "microchip,sama7g5-sckc";
