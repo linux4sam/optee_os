@@ -57,7 +57,7 @@
 #define  TCB_WPMR_WAKEY		0x54494d
 
 #ifdef OPTEE_SAMA7G5
-static const char *tcb_clocks[] = {"t0_clk", "gclk", "md_sclk"};
+static const char *tcb_clocks[] = {"t0_clk", "gclk", "md_slck"};
 #else
 static const char *tcb_clocks[] = {"t0_clk", "gclk", "slow_clk"};
 #endif

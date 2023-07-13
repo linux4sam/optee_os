@@ -1250,12 +1250,11 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	if (_fdt_get_status(fdt, nodeoffset) == DT_STATUS_OK_SEC)
 		matrix_configure_periph_secure(ID_PMC);
 
-	res = clk_dt_get_by_name(fdt, nodeoffset, "md_sclk", &md_slck);
+	res = clk_dt_get_by_name(fdt, nodeoffset, "md_slck", &md_slck);
 	if (res)
 		panic();
 
-//	res = clk_dt_get_by_name(fdt, nodeoffset, "td_sclk", &td_slck);
-	td_slck = md_slck; // TODO: create td_slck from device tree
+	res = clk_dt_get_by_name(fdt, nodeoffset, "td_slck", &td_slck);
 	if (res)
 		panic();
 
