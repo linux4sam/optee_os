@@ -23,15 +23,12 @@ endif
 $(call force,CFG_TEE_CORE_NB_CORE,1)
 $(call force,CFG_ATMEL_UART,y)
 ifeq ($(PLATFORM_FLAVOR),sama7g54_ek)
-$(call force,CFG_ATMEL_SAIC,n)
+$(call force,CFG_GIC,y)
 else
 $(call force,CFG_ATMEL_SAIC,y)
 endif
 $(call force,CFG_NO_SMP,y)
-ifeq ($(PLATFORM_FLAVOR),sama7g54_ek)
-$(call force,CFG_PL310,n)
-$(call force,CFG_GIC,y)
-else
+ifneq ($(PLATFORM_FLAVOR),sama7g54_ek)
 $(call force,CFG_PL310,y)
 endif
 $(call force,CFG_AT91_MATRIX,y)
