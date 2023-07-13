@@ -182,6 +182,7 @@ free_pio:
 
 static const struct dt_device_match atmel_pio_match_table[] = {
 	{ .compatible = "atmel,sama5d2-pinctrl" },
+	{ .compatible = "microchip,sama7g5-pinctrl" },
 	{ }
 };
 

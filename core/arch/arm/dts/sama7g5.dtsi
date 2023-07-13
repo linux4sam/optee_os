@@ -404,14 +404,9 @@
 				status = "disabled";
 				secure-status = "okay";
 			};
-			pioA: pinctrl@e0015000 {
-				compatible = "atmel,sama5d2-pinctrl";
-				reg = <0xe0015000 0x600>;
-				interrupts = <11 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <12 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <13 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <14 IRQ_TYPE_LEVEL_HIGH 7>,
-					     <15 IRQ_TYPE_LEVEL_HIGH 7>;
+			pioA: pinctrl@e0014000 {
+				compatible = "microchip,sama7g5-pinctrl";
+				reg = <0xe0014000 0x800>;
 				interrupt-controller;
 				#interrupt-cells = <2>;
 				gpio-controller;

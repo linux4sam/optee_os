@@ -40,3 +40,8 @@
 		reg = <1>;
 	};
 };
+
+&pioA {
+	status = "disabled";
+	secure-status = "okay";
+};
