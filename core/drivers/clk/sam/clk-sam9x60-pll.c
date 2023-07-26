@@ -222,8 +222,8 @@ static long sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
 	unsigned long nmul = 0;
 	unsigned long nfrac = 0;
 
-	if (rate < frac->core.charac->core_output[0].min ||
-	    rate > frac->core.charac->core_output[0].max)
+	if (rate < frac->core.charac->output[0].min ||
+	    rate > frac->core.charac->output[0].max)
 		return -ERANGE;
 
 	/*
@@ -243,8 +243,8 @@ static long sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
 	}
 
 	/* Check if resulted rate is a valid.  */
-	if (tmprate < frac->core.charac->core_output[0].min ||
-	    tmprate > frac->core.charac->core_output[0].max)
+	if (tmprate < frac->core.charac->output[0].min ||
+	    tmprate > frac->core.charac->output[0].max)
 		return -ERANGE;
 
 	if (update) {
@@ -508,7 +508,7 @@ sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
 		}
 
 		ret = sam9x60_frac_pll_compute_mul_frac(frac,
-							characteristics->core_output[0].min,
+							characteristics->output[0].min,
 							parent_rate, true);
 		if (ret <= 0) {
 			clk_free(hw);

@@ -137,6 +137,7 @@
 #define     AT91_PMC_PLLADIV2_ON		BIT(12)
 #define	  AT91_PMC_H32MXDIV	BIT(24)
 
+#ifdef CFG_DRIVERS_SAMA7G5_CLK
 #define	AT91_PMC_MCR_V2		0x30				/* Master Clock Register [SAMA7G5 only] */
 #define		AT91_PMC_MCR_V2_ID_MSK	(0xF)
 #define			AT91_PMC_MCR_V2_ID(_id)		((_id) & AT91_PMC_MCR_V2_ID_MSK)
@@ -162,6 +163,7 @@
 #define			AT91_PMC_MCR_V2_CSS_AUDIOPLL	(9 << 16)
 #define			AT91_PMC_MCR_V2_CSS_ETHPLL	(10 << 16)
 #define		AT91_PMC_MCR_V2_EN	(1 << 28)
+#endif
 
 #define AT91_PMC_XTALF				0x34
 

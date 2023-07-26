@@ -17,7 +17,7 @@
 
 #include <dt-bindings/clock/at91.h>
 
-#define PARENT_SIZE		ARRAY_SIZE(sama7g5_systemck)
+#define CLK_IS_CRITICAL 0
 
 enum main_system_bus_clock {
 	MSBC_MCK0,
@@ -26,10 +26,6 @@ enum main_system_bus_clock {
 	MSBC_MCK3,
 	MSBC_GCLK,
 };
-
-
-#define GENMASK(h, l) (((~0UL) << (l)) & (~0UL >> (sizeof(long) * 8 - 1 - (h))))
-#define CLK_IS_CRITICAL 0
 
 /*
  * PLL clocks identifiers
@@ -63,17 +59,29 @@ enum pll_type {
 	PLL_TYPE_CNT,
 };
 
+struct clk *
+sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
+			      const char *name, struct clk *parent, uint8_t id,
+			      const struct clk_pll_charac *characteristics,
+			      const struct clk_pll_layout *layout, uint32_t flags);
+struct clk *
+sam9x60_clk_register_div_pll(struct pmc_data *pmc,
+			     const char *name, struct clk *parent, uint8_t id,
+			     const struct clk_pll_charac *characteristics,
+			     const struct clk_pll_layout *layout, uint32_t flags,
+			     uint32_t safe_div);
+
 /* Layout for fractional PLLs. */
 static const struct clk_pll_layout pll_layout_frac = {
-	.mul_mask	= GENMASK(31, 24),
-	.frac_mask	= GENMASK(21, 0),
+	.mul_mask	= GENMASK_32(31, 24),
+	.frac_mask	= GENMASK_32(21, 0),
 	.mul_shift	= 24,
 	.frac_shift	= 0,
 };
 
 /* Layout for DIVPMC dividers. */
 static const struct clk_pll_layout pll_layout_divpmc = {
-	.div_mask	= GENMASK(7, 0),
+	.div_mask	= GENMASK_32(7, 0),
 	.endiv_mask	= BIT(29),
 	.div_shift	= 0,
 	.endiv_shift	= 29,
@@ -81,7 +89,7 @@ static const struct clk_pll_layout pll_layout_divpmc = {
 
 /* Layout for DIVIO dividers. */
 static const struct clk_pll_layout pll_layout_divio = {
-	.div_mask	= GENMASK(19, 12),
+	.div_mask	= GENMASK_32(19, 12),
 	.endiv_mask	= BIT(30),
 	.div_shift	= 12,
 	.endiv_shift	= 30,
@@ -101,17 +109,11 @@ static const struct clk_range pll_outputs[] = {
 	{ .min = 2343750, .max = 1200000000 },
 };
 
-/* Fractional PLL core output range. */
-static const struct clk_range core_outputs[] = {
-	{ .min = 600000000, .max = 1200000000 },
-};
-
 /* CPU PLL characteristics. */
 static const struct clk_pll_charac cpu_pll_characteristics = {
 	.input = { .min = 12000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(cpu_pll_outputs),
 	.output = cpu_pll_outputs,
-	.core_output = core_outputs,
 };
 
 /* PLL characteristics. */
@@ -119,7 +121,6 @@ static const struct clk_pll_charac pll_characteristics = {
 	.input = { .min = 12000000, .max = 50000000 },
 	.num_output = ARRAY_SIZE(pll_outputs),
 	.output = pll_outputs,
-	.core_output = core_outputs,
 };
 
 /*
@@ -311,10 +312,7 @@ static const struct {
  * @ep_mux_table:	mux table for extra parents
  * @id:			clock id
  * @eid:		export index in sama7g5->chws[] array
- * @c:			true if clock is critical and cannot be disabled
  */
-
-// a7    Table 35-1. Available Input for Each MCKx
 static const struct {
 	const char *n;
 	const char *ep[4];
@@ -323,7 +321,6 @@ static const struct {
 	uint8_t ep_mux_table[4];
 	uint8_t id;
 	uint8_t eid;
-	uint8_t c;
 } sama7g5_mckx[] = {
 	{ .n = "mck1",
 	  .id = 1,
@@ -331,16 +328,14 @@ static const struct {
 	  .ep_mux_table = { 5, },
 	  .ep_count = 1,
 	  .ep_chg_id = INT_MIN,
-	  .eid = PMC_MCK1,
-	  .c = 1, },
+	  .eid = PMC_MCK1, },
 
 	{ .n = "mck2",
 	  .id = 2,
 	  .ep = { "ddrpll_divpmcck", },
 	  .ep_mux_table = { 6, },
 	  .ep_count = 1,
-	  .ep_chg_id = INT_MIN,
-	  .c = 1, },
+	  .ep_chg_id = INT_MIN, },
 
 	{ .n = "mck3",
 	  .id = 3,
@@ -354,8 +349,7 @@ static const struct {
 	  .ep = { "syspll_divpmcck", },
 	  .ep_mux_table = { 5, },
 	  .ep_count = 1,
-	  .ep_chg_id = INT_MIN,
-	  .c = 1, },
+	  .ep_chg_id = INT_MIN, },
 };
 
 /*
@@ -378,9 +372,6 @@ static const struct {
 	{ .n = "pck6",		.p = "prog6", .id = 14, },
 	{ .n = "pck7",		.p = "prog7", .id = 15, },
 };
-
-/* Mux table for programmable clocks. */
-static uint32_t sama7g5_prog_mux_table[] = { 0, 1, 2, 5, 6, 7, 8, 9, 10, };
 
 /*
  * Peripheral clock description
@@ -875,262 +866,13 @@ static const struct clk_master_layout mck0_layout = {
 	.offset = 0x28,
 };
 
-/* Programmable clock layout. */
-static const struct clk_programmable_layout programmable_layout = {
-	.pres_mask = 0xff,
-	.pres_shift = 8,
-	.css_mask = 0x1f,
-	.have_slck_mck = 0,
-	.is_pres_direct = 1,
-};
-
 /* Peripheral clock layout. */
 static const struct clk_pcr_layout sama7g5_pcr_layout = {
 	.offset = 0x88,
 	.cmd = BIT(31),
-	.div_mask = GENMASK(27, 20),
-	.gckcss_mask = GENMASK(12, 8),
-	.pid_mask = GENMASK(6, 0),
-};
-
-
-struct clk *
-sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
-			      const char *name, struct clk *parent, uint8_t id,
-			      const struct clk_pll_charac *characteristics,
-			      const struct clk_pll_layout *layout, uint32_t flags);
-struct clk *
-sam9x60_clk_register_div_pll(struct pmc_data *pmc,
-			     const char *name, struct clk *parent, uint8_t id,
-			     const struct clk_pll_charac *characteristics,
-			     const struct clk_pll_layout *layout, uint32_t flags,
-			     uint32_t safe_div);
-
-/*
- * Divide positive or negative dividend by positive or negative divisor
- * and round to closest integer. Result is undefined for negative
- * divisors if the dividend variable type is unsigned and for negative
- * dividends if the divisor variable type is unsigned.
- */
-#define DIV_ROUND_CLOSEST(x, divisor)(                  \
-{                                                       \
-        typeof(x) __x = x;                              \
-        typeof(divisor) __d = divisor;                  \
-        (((typeof(x))-1) > 0 ||                         \
-         ((typeof(divisor))-1) > 0 ||                   \
-         (((__x) > 0) == ((__d) > 0))) ?                \
-                (((__x) + ((__d) / 2)) / (__d)) :       \
-                (((__x) - ((__d) / 2)) / (__d));        \
-}                                                       \
-)
-
-#define MASTER_PRES_MASK	0x7
-#define MASTER_PRES_MAX		MASTER_PRES_MASK
-#define MASTER_DIV_SHIFT	8
-#define MASTER_DIV_MASK		0x7
-
-#define PMC_MCR_CSS_SHIFT	(16)
-
-#define MASTER_MAX_ID		4
-
-struct clk_master_sama7 {
-	struct clk *hw;
-	vaddr_t base;
-	const struct clk_master_layout *layout;
-	const struct clk_master_charac *characteristics;
-	uint32_t *mux_table;
-	uint32_t mckr;
-	int chg_pid;
-	uint8_t id;
-	uint8_t parent;
-	uint8_t div;
-	uint32_t safe_div;
-};
-
-static inline bool clk_master_ready(struct clk_master_sama7 *master)
-{
-	unsigned int bit = master->id ? AT91_PMC_MCKXRDY : AT91_PMC_MCKRDY;
-	unsigned int status;
-
-	status = io_read32(master->base + AT91_PMC_SR);
-
-	return !!(status & bit);
-}
-
-static uint8_t clk_sama7g5_master_get_parent(struct clk *hw)
-{
-	struct clk_master_sama7 *master = hw->priv;
-	uint32_t i;
-
-	for( i =0; i< hw->num_parents; i++)
-		if (master->mux_table[i] == master->parent)
-			return i;
-
-	return -1;
-}
-
-static int clk_sama7g5_master_set_parent(struct clk *hw, uint8_t index)
-{
-	struct clk_master_sama7 *master = hw->priv;
-	if (index >= hw->num_parents)
-		return -1;//EINVAL;
-
-	master->parent = master->mux_table[index];
-	return 0;
-}
-
-static void clk_sama7g5_master_set(struct clk_master_sama7 *master,
-				   unsigned int status)
-{
-	unsigned long flags;
-	unsigned int val, cparent;
-	unsigned int enable = status ? AT91_PMC_MCR_V2_EN : 0;
-	unsigned int parent = master->parent << PMC_MCR_CSS_SHIFT;
-	unsigned int div = master->div << MASTER_DIV_SHIFT;
-
-	io_write32(master->base + AT91_PMC_MCR_V2, AT91_PMC_MCR_V2_ID(master->id));
-	val = io_read32(master->base + AT91_PMC_MCR_V2);
-	io_clrsetbits32(master->base + AT91_PMC_MCR_V2,
-			   enable | AT91_PMC_MCR_V2_CSS | AT91_PMC_MCR_V2_DIV |
-			   AT91_PMC_MCR_V2_CMD | AT91_PMC_MCR_V2_ID_MSK,
-			   enable | parent | div | AT91_PMC_MCR_V2_CMD |
-			   AT91_PMC_MCR_V2_ID(master->id));
-
-	cparent = (val & AT91_PMC_MCR_V2_CSS) >> PMC_MCR_CSS_SHIFT;
-
-	/* Wait here only if parent is being changed. */
-	while ((cparent != master->parent) && !clk_master_ready(master))
-		;
-}
-
-static int clk_sama7g5_master_enable(struct clk *hw)
-{
-	struct clk_master_sama7 *master = hw->priv;
-
-	clk_sama7g5_master_set(master, 1);
-
-	return 0;
-}
-
-static void clk_sama7g5_master_disable(struct clk *hw)
-{
-	struct clk_master_sama7 *master = hw->priv;
-	io_write32(master->base + AT91_PMC_MCR_V2, AT91_PMC_MCR_V2_ID(master->id));
-	io_clrsetbits32(master->base + AT91_PMC_MCR_V2,
-			   AT91_PMC_MCR_V2_EN | AT91_PMC_MCR_V2_CMD |
-			   AT91_PMC_MCR_V2_ID_MSK,
-			   AT91_PMC_MCR_V2_CMD |
-			   AT91_PMC_MCR_V2_ID(master->id));
-}
-
-static int clk_sama7g5_master_set_rate(struct clk *hw, unsigned long rate,
-				       unsigned long parent_rate)
-{
-	struct clk_master_sama7 *master = hw->priv;
-	unsigned long div, flags;
-
-	div = DIV_ROUND_CLOSEST(parent_rate, rate);
-	if ((div > (1 << (MASTER_PRES_MAX - 1))) || (div & (div - 1)))
-		return -1;//EINVAL;
-
-	if (div == 3)
-		div = MASTER_PRES_MAX;
-	else if (div)
-		div = ffs(div) - 1;
-	master->div = div;
-	return 0;
-}
-static unsigned long clk_sama7g5_master_get_rate(struct clk *hw,
-					       unsigned long parent_rate)
-{
-	struct clk_master_sama7 *master = hw->priv;
-	unsigned long rate = parent_rate >> master->div;
-	if (master->div == 7)
-		rate = parent_rate / 3;
-
-	return rate;
-}
-
-static const struct clk_ops sama7g5_master_ops = {
-	.set_rate = clk_sama7g5_master_set_rate,
-	.get_rate = clk_sama7g5_master_get_rate,
-	.get_parent = clk_sama7g5_master_get_parent,
-	.set_parent = clk_sama7g5_master_set_parent,
-};
-
-struct clk *
-at91_clk_sama7g5_register_master(struct pmc_data *pmc,
-				 const char *name, int num_parents,
-				 struct clk *parent,
-				 uint32_t *mux_table,
-				 uint8_t id,
-				 bool critical, int chg_pid)
-{
-	struct clk_master_sama7 *master;
-	struct clk *hw;
-	unsigned long flags;
-	unsigned int val;
-	int ret;
-
-	if (!name || !num_parents || !parent || !mux_table ||
-	    id > MASTER_MAX_ID)
-		return NULL;
-
-	master = calloc(1, sizeof(*master));
-	if (!master)
-		return NULL;
-
-	hw = clk_alloc(name, &sama7g5_master_ops, parent, num_parents);
-	if (!hw) {
-		free(master);
-		return NULL;
-	}
-
-	hw->priv = master;
-	hw->flags = CLK_SET_RATE_GATE | CLK_SET_PARENT_GATE;
-	if (chg_pid >= 0)
-		hw->flags |= CLK_SET_RATE_PARENT;
-	if (critical)
-		hw->flags |= CLK_IS_CRITICAL;
-	master->base = pmc->base;
-	master->id = id;
-	master->chg_pid = chg_pid;
-	master->mux_table = mux_table;
-
-	io_write32(master->base + AT91_PMC_MCR_V2, master->id);
-	val = io_read32(master->base + AT91_PMC_MCR_V2);
-	master->parent = (val & AT91_PMC_MCR_V2_CSS) >> PMC_MCR_CSS_SHIFT;
-	master->div = (val & AT91_PMC_MCR_V2_DIV) >> MASTER_DIV_SHIFT;
-
-	master->hw = hw;
-	if (clk_register(hw)) {
-		clk_free(hw);
-		free(master);
-		return NULL;
-	}
-	return hw;
-}
-
-struct sam_clk {
-	const char *n;
-	uint8_t id;
-};
-
-
-static uint8_t plla_out[1];
-
-static uint16_t plla_icpll[1];
-
-static const struct clk_range plla_outputs[] = {
-	{ .min = 600000000, .max = 1200000000 },
-};
-
-static const struct clk_pll_charac plla_charac = {
-	.input = { .min = 12000000, .max = 24000000 },
-	.num_output = ARRAY_SIZE(plla_outputs),
-	.output = plla_outputs,
-	.icpll = plla_icpll,
-	.out = plla_out,
+	.div_mask = GENMASK_32(27, 20),
+	.gckcss_mask = GENMASK_32(12, 8),
+	.pid_mask = GENMASK_32(6, 0),
 };
 
 static const struct clk_programmable_layout sama7g5_prog_layout = {
@@ -1142,48 +884,9 @@ static const struct clk_programmable_layout sama7g5_prog_layout = {
 };
 
 static const struct {
-	struct sam_clk clk;
-	enum main_system_bus_clock bus;
-	struct clk_range r;
-} sama7g5_peri_mck0[] = {
-	{ .clk = { .n = "hsmc_clk",  .id = ID_HSMC },      .bus = MSBC_MCK1, },
-	{ .clk = { .n = "csi_clk",   .id = ID_CSI },       .bus = MSBC_MCK3, .r = { .min = 0, .max = 27000000 }, },
-	{ .clk = { .n = "pioA_clk",  .id = ID_PIOA },      .bus = MSBC_MCK0, },
-	{ .clk = { .n = "flx0_clk",  .id = ID_FLEXCOM0 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx1_clk",  .id = ID_FLEXCOM1 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx2_clk",  .id = ID_FLEXCOM2 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx3_clk",  .id = ID_FLEXCOM3 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx4_clk",  .id = ID_FLEXCOM4 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx5_clk",  .id = ID_FLEXCOM5 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx6_clk",  .id = ID_FLEXCOM6 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx7_clk",  .id = ID_FLEXCOM7 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx8_clk",  .id = ID_FLEXCOM8 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx9_clk",  .id = ID_FLEXCOM9 },  .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx10_clk", .id = ID_FLEXCOM10 }, .bus = MSBC_MCK1, },
-	{ .clk = { .n = "flx11_clk", .id = ID_FLEXCOM11 }, .bus = MSBC_MCK1, },
-	{ .clk = { .n = "trng_clk",  .id = ID_TRNG},       .bus = MSBC_MCK1, },
-	{ .clk = { .n = "gmac0_clk", .id = ID_GMAC0 },     .bus = MSBC_MCK1, },
-	{ .clk = { .n = "gmac1_clk", .id = ID_GMAC1 },     .bus = MSBC_MCK1, },
-	{ .clk = { .n = "tcb0_clk", .id = ID_TC0_CHANNEL0 }, .bus = MSBC_MCK1, },
-	{ .clk = { .n = "tcb1_clk", .id = ID_TC1_CHANNEL0 }, .bus = MSBC_MCK1, },
-};
-static const struct sam_clk sama5d2_perick[] = {
-	{ .n = "dma0_clk",    .id = 6 },
-	{ .n = "dma1_clk",    .id = 7 },
-	{ .n = "aes_clk",     .id = 9 },
-	{ .n = "aesb_clk",    .id = 10 },
-	{ .n = "sha_clk",     .id = 12 },
-	{ .n = "mpddr_clk",   .id = 13 },
-	{ .n = "matrix0_clk", .id = 15 },
-	{ .n = "sdmmc0_hclk", .id = 31 },
-	{ .n = "sdmmc1_hclk", .id = 32 },
-	{ .n = "lcdc_clk",    .id = 45 },
-	{ .n = "isc_clk",     .id = 46 },
-	{ .n = "qspi0_clk",   .id = 52 },
-	{ .n = "qspi1_clk",   .id = 53 },
-};
-
-static const struct sam_clk sama7g5_progck[] = {
+	const char *n;
+	uint8_t id;
+} sama7g5_progck[] = {
 	{ .n = "prog0", .id = 0 },
 	{ .n = "prog1", .id = 1 },
 	{ .n = "prog2", .id = 2 },
@@ -1213,20 +916,12 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	int bypass = 0;
 	const uint32_t *fdt_prop = NULL;
 	struct pmc_clk *pmc_clk = NULL;
-	const struct sam_clk *sam_clk = NULL;
-	struct clk_range range = CLK_RANGE(0, 0);
-	struct clk *plladivck = NULL;
-	struct clk *usbck = NULL;
-	struct clk *audiopll_pmcck = NULL;
-	struct clk *parents[PARENT_SIZE] = {NULL};
+	struct clk *parents[ARRAY_SIZE(sama7g5_systemck)] = {NULL};
 	struct clk *main_clk = NULL;
-	struct clk *utmi_clk = NULL;
-	struct clk *slow_clk = NULL;
 	struct clk *clk = NULL;
 	struct clk *main_rc_osc = NULL;
 	struct clk *main_osc = NULL;
 	struct clk *main_xtal_clk = NULL;
-	struct clk *audiopll_fracck = NULL;
 
 	struct clk *md_slck = NULL;
 	struct clk *td_slck = NULL;
@@ -1361,7 +1056,6 @@ static TEE_Result pmc_setup_sama7g5(const void *fdt, int nodeoffset,
 	pmc_clk->clk = mck0_clk;
 	pmc_clk->id = PMC_MCK;
 
-td_slck = md_slck;
 	parents[0] = md_slck;
 	parents[1] = td_slck;
 	parents[2] = main_clk;
@@ -1384,7 +1078,6 @@ td_slck = md_slck;
 		clk = at91_clk_sama7g5_register_master(sama7g5_pmc, sama7g5_mckx[i].n,
 				   num_parents, parents, mux_table,
 				   sama7g5_mckx[i].id,
-				   sama7g5_mckx[i].c,
 				   sama7g5_mckx[i].ep_chg_id);
 		if (!clk)
 			panic();

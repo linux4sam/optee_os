@@ -72,7 +72,7 @@ struct clk_pll_layout {
 	uint8_t frac_shift;
 	uint8_t div_shift;
 	uint8_t endiv_shift;
-#ifdef OPTEE_SAMA7G5
+#ifdef CFG_DRIVERS_SAMA7G5_CLK
 	uint8_t div2;
 #endif
 };
@@ -89,9 +89,6 @@ struct clk_pll_charac {
 	struct clk_range input;
 	int num_output;
 	const struct clk_range *output;
-#ifdef OPTEE_SAMA7G5
-	const struct clk_range *core_output;
-#endif
 	uint16_t *icpll;
 	uint8_t *out;
 	uint8_t upll : 1;
@@ -177,6 +174,16 @@ at91_clk_register_master_div(struct pmc_data *pmc,
 			     const struct clk_master_layout *layout,
 			     const struct clk_master_charac *charac);
 
+#ifdef CFG_DRIVERS_SAMA7G5_CLK
+struct clk *
+at91_clk_sama7g5_register_master(struct pmc_data *pmc,
+				 const char *name, int num_parents,
+				 struct clk **parent,
+				 uint32_t *mux_table,
+				 uint8_t id,
+				 int chg_pid);
+#endif
+
 /* H32MX */
 struct clk *
 at91_clk_register_h32mx(struct pmc_data *pmc, const char *name,
@@ -208,7 +215,7 @@ struct clk *
 at91_clk_register_generated(struct pmc_data *pmc,
 			    const struct clk_pcr_layout *layout,
 			    const char *name, struct clk **parents,
-#ifdef OPTEE_SAMA7G5
+#ifdef CFG_DRIVERS_SAMA7G5_CLK
 			    uint32_t *mux_table,
 #endif
 			    uint8_t num_parents, uint8_t id,
