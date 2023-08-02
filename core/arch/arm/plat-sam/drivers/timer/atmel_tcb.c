@@ -167,7 +167,7 @@ static TEE_Result atmel_tcb_setup(const void *fdt, int nodeoffset, int status)
 		return TEE_SUCCESS;
 
 #ifdef OPTEE_SAMA7G5
-	res = clk_dt_get_by_name(fdt, nodeoffset, "md_sclk", &clk);
+	res = clk_dt_get_by_name(fdt, nodeoffset, "md_slck", &clk);
 #else
 	res = clk_dt_get_by_name(fdt, nodeoffset, "slow_clk", &clk);
 #endif
