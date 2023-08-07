@@ -4,7 +4,13 @@
  *
  */
 
-#define ERANGE 1
+#include <io.h>
+#include <kernel/delay.h>
+#include <util.h>
+#include <mm/core_memprot.h>
+#include <types_ext.h>
+
+#include "at91_clk.h"
 
 #define mult_frac(x, numer, denom)( 		\
 {							\
@@ -14,44 +20,12 @@
 }							\
 )
 
-/*
- * Divide positive or negative dividend by positive or negative divisor
- * and round to closest integer. Result is undefined for negative
- * divisors if the dividend variable type is unsigned and for negative
- * dividends if the divisor variable type is unsigned.
- */
-#define DIV_ROUND_CLOSEST(x, divisor)(                  \
-{                                                       \
-        typeof(x) __x = x;                              \
-        typeof(divisor) __d = divisor;                  \
-        (((typeof(x))-1) > 0 ||                         \
-         ((typeof(divisor))-1) > 0 ||                   \
-         (((__x) > 0) == ((__d) > 0))) ?                \
-                (((__x) + ((__d) / 2)) / (__d)) :       \
-                (((__x) - ((__d) / 2)) / (__d));        \
-}                                                       \
-)
-
-#define DIV_ROUND_CLOSEST_ULL(x, divisor) DIV_ROUND_CLOSEST(x, divisor)
-
 #define PMC_PLL_CTRL0_DIV_MSK 0xf
 #define PMC_PLL_CTRL0_DIV_POS 0
 #define	PMC_PLL_CTRL1_MUL_MSK 0xff
 #define	PMC_PLL_CTRL1_MUL_POS 24
 #define	PMC_PLL_CTRL1_FRACR_MSK	0x3fffff
 #define	PMC_PLL_CTRL1_FRACR_POS	0
-
-#include <io.h>
-#include <kernel/delay.h>
-#include <kernel/panic.h>
-#include <util.h>
-#include <mm/core_memprot.h>
-#include <types_ext.h>
-
-#include "at91_clk.h"
-
-#define u8 uint8_t
-#define u32 uint32_t
 
 #define PLL_STATUS_MASK(id)	BIT(1 + (id))
 #define PLL_REG(id)		(AT91_CKGR_PLLAR + ((id) * 4))
@@ -89,11 +63,9 @@ struct sam9x60_frac {
 
 struct sam9x60_div {
 	struct sam9x60_pll_core core;
-	u8 div;
-	u8 safe_div;
+	uint8_t div;
+	uint8_t safe_div;
 };
-
-static struct sam9x60_div *notifier_div;
 
 static inline bool sam9x60_pll_ready(vaddr_t base, int id)
 {
@@ -102,7 +74,7 @@ static inline bool sam9x60_pll_ready(vaddr_t base, int id)
 	return !!(status & BIT(id));
 }
 
-static bool sam9x60_frac_pll_ready(struct regmap *regmap, u8 id)
+static bool sam9x60_frac_pll_ready(vaddr_t regmap, uint8_t id)
 {
 	return sam9x60_pll_ready(regmap, id);
 }
@@ -115,7 +87,7 @@ static unsigned long sam9x60_frac_pll_recalc_rate(struct clk *hw,
 	unsigned long freq;
 
 	freq = parent_rate * (frac->mul + 1) +
-		DIV_ROUND_CLOSEST_ULL((unsigned long long)parent_rate * frac->frac, (1 << 22));
+		UDIV_ROUND_NEAREST((unsigned long long)parent_rate * frac->frac, (1 << 22));
 
 	if (core->layout->div2)
 		freq >>= 1;
@@ -126,9 +98,8 @@ static unsigned long sam9x60_frac_pll_recalc_rate(struct clk *hw,
 static TEE_Result sam9x60_frac_pll_set(struct sam9x60_frac *frac)
 {
 	struct sam9x60_pll_core *core = &frac->core;
-	u32 regmap = frac->core.base;
+	vaddr_t regmap = frac->core.base;
 	unsigned int val, cfrac, cmul;
-	unsigned long flags;
 
 	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
 			   AT91_PMC_PLL_UPDT_ID_MSK, core->id);
@@ -205,15 +176,7 @@ static void sam9x60_frac_pll_unprepare(struct clk *hw)
 			   AT91_PMC_PLL_UPDT_UPDATE | frac->core.id);
 }
 
-static int sam9x60_frac_pll_is_prepared(struct clk *hw)
-{
-	struct sam9x60_frac *frac = hw->priv;
-	struct sam9x60_pll_core *core = &frac->core;
-
-	return sam9x60_pll_ready(core->base, core->id);
-}
-
-static long sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
+static TEE_Result sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
 					      unsigned long rate,
 					      unsigned long parent_rate,
 					      bool update)
@@ -224,7 +187,7 @@ static long sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
 
 	if (rate < frac->core.charac->output[0].min ||
 	    rate > frac->core.charac->output[0].max)
-		return -ERANGE;
+		return TEE_ERROR_GENERIC;
 
 	/*
 	 * Calculate the multiplier associated with the current
@@ -235,90 +198,59 @@ static long sam9x60_frac_pll_compute_mul_frac(struct sam9x60_frac *frac,
 	remainder = rate - tmprate;
 
 	if (remainder) {
-		nfrac = DIV_ROUND_NEAREST((uint64_t)remainder * (1 << 22),
+		nfrac = UDIV_ROUND_NEAREST((uint64_t)remainder * (1 << 22),
 					      parent_rate);
 
-		tmprate += DIV_ROUND_NEAREST((uint64_t)nfrac * parent_rate,
+		tmprate += UDIV_ROUND_NEAREST((uint64_t)nfrac * parent_rate,
 						 (1 << 22));
 	}
 
 	/* Check if resulted rate is a valid.  */
 	if (tmprate < frac->core.charac->output[0].min ||
 	    tmprate > frac->core.charac->output[0].max)
-		return -ERANGE;
+		return TEE_ERROR_GENERIC;
 
 	if (update) {
 		frac->mul = nmul - 1;
 		frac->frac = nfrac;
 	}
 
-	return tmprate;
+	return TEE_SUCCESS;
 }
 
-static long sam9x60_frac_pll_round_rate(struct clk *hw, unsigned long rate,
-					unsigned long *parent_rate)
-{
-	struct sam9x60_frac *frac = hw->priv;
-
-	return sam9x60_frac_pll_compute_mul_frac(frac, rate, *parent_rate, false);
-}
-
-static TEE_Result sam9x60_frac_pll_set_rate(struct clk *hw, unsigned long rate,
-				     unsigned long parent_rate)
-{
-	struct sam9x60_frac *frac = hw->priv;
-
-	sam9x60_frac_pll_compute_mul_frac(frac, rate, parent_rate, true);
-	return 0;
-}
-
-static int sam9x60_frac_pll_set_rate_chg(struct clk *hw, unsigned long rate,
+static TEE_Result sam9x60_frac_pll_set_rate_chg(struct clk *hw, unsigned long rate,
 					 unsigned long parent_rate)
 {
-	int ret;
+	TEE_Result ret;
 	struct sam9x60_frac *frac = hw->priv;
 	struct sam9x60_pll_core *core = &frac->core;
-	u32 regmap = core->base;
-	unsigned int val, cfrac, cmul;
+	vaddr_t regmap = core->base;
 
 	ret = sam9x60_frac_pll_compute_mul_frac(frac, rate, parent_rate, true);
-	if (ret <= 0)
-		return -1;
+	if (ret == TEE_SUCCESS) {
+		io_write32(regmap + AT91_PMC_PLL_CTRL1,
+			     (frac->mul << core->layout->mul_shift) |
+			     (frac->frac << core->layout->frac_shift));
 
-	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT, AT91_PMC_PLL_UPDT_ID_MSK, core->id);
-	val = io_read32(regmap + AT91_PMC_PLL_CTRL1);
-	cmul = (val & core->layout->mul_mask) >> core->layout->mul_shift;
-	cfrac = (val & core->layout->frac_mask) >> core->layout->frac_shift;
+		io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
+				   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
+				   AT91_PMC_PLL_UPDT_UPDATE | core->id);
 
-	io_write32(regmap + AT91_PMC_PLL_CTRL1,
-		     (frac->mul << core->layout->mul_shift) |
-		     (frac->frac << core->layout->frac_shift));
+		io_clrsetbits32(regmap + AT91_PMC_PLL_CTRL0,
+				   AT91_PMC_PLL_CTRL0_ENLOCK | AT91_PMC_PLL_CTRL0_ENPLL,
+				   AT91_PMC_PLL_CTRL0_ENLOCK |
+				   AT91_PMC_PLL_CTRL0_ENPLL);
 
-	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
-			   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
-			   AT91_PMC_PLL_UPDT_UPDATE | core->id);
+		io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
+				   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
+				   AT91_PMC_PLL_UPDT_UPDATE | core->id);
 
-	io_clrsetbits32(regmap + AT91_PMC_PLL_CTRL0,
-			   AT91_PMC_PLL_CTRL0_ENLOCK | AT91_PMC_PLL_CTRL0_ENPLL,
-			   AT91_PMC_PLL_CTRL0_ENLOCK |
-			   AT91_PMC_PLL_CTRL0_ENPLL);
+		while (!sam9x60_pll_ready(regmap, core->id))
+			;
+	}
 
-	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
-			   AT91_PMC_PLL_UPDT_UPDATE | AT91_PMC_PLL_UPDT_ID_MSK,
-			   AT91_PMC_PLL_UPDT_UPDATE | core->id);
-
-	while (!sam9x60_pll_ready(regmap, core->id))
-		;
-
-	return 0;
+	return ret;
 }
-
-static const struct clk_ops sam9x60_frac_pll_ops = {
-	.enable = sam9x60_frac_pll_prepare,
-	.disable = sam9x60_frac_pll_unprepare,
-	.get_rate = sam9x60_frac_pll_recalc_rate,
-	.set_rate = sam9x60_frac_pll_set_rate,
-};
 
 static const struct clk_ops sam9x60_frac_pll_ops_chg = {
 	.enable = sam9x60_frac_pll_prepare,
@@ -327,12 +259,12 @@ static const struct clk_ops sam9x60_frac_pll_ops_chg = {
 	.set_rate = sam9x60_frac_pll_set_rate_chg,
 };
 
-static void sam9x60_div_pll_set_div(struct sam9x60_pll_core *core, u32 div,
+static void sam9x60_div_pll_set_div(struct sam9x60_pll_core *core, uint32_t div,
 				    bool enable)
 {
-	u32 regmap = core->base;
-	u32 ena_msk = enable ? core->layout->endiv_mask : 0;
-	u32 ena_val = enable ? (1 << core->layout->endiv_shift) : 0;
+	vaddr_t regmap = core->base;
+	uint32_t ena_msk = enable ? core->layout->endiv_mask : 0;
+	uint32_t ena_val = enable ? (1 << core->layout->endiv_shift) : 0;
 
 	io_clrsetbits32(regmap + AT91_PMC_PLL_CTRL0,
 			   core->layout->div_mask | ena_msk,
@@ -349,8 +281,7 @@ static void sam9x60_div_pll_set_div(struct sam9x60_pll_core *core, u32 div,
 static TEE_Result sam9x60_div_pll_set(struct sam9x60_div *div)
 {
 	struct sam9x60_pll_core *core = &div->core;
-	u32 regmap = core->base;
-	unsigned long flags;
+	vaddr_t regmap = core->base;
 	unsigned int val, cdiv;
 	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
 			   AT91_PMC_PLL_UPDT_ID_MSK, core->id);
@@ -376,7 +307,7 @@ static void sam9x60_div_pll_unprepare(struct clk *hw)
 {
 	struct sam9x60_div *div = hw->priv;
 	struct sam9x60_pll_core *core = &div->core;
-	u32 regmap = core->base;
+	vaddr_t regmap = core->base;
 	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT,
 			   AT91_PMC_PLL_UPDT_ID_MSK, core->id);
 
@@ -392,34 +323,27 @@ static unsigned long sam9x60_div_pll_recalc_rate(struct clk *hw,
 						 unsigned long parent_rate)
 {
 	struct sam9x60_div *div = hw->priv;
-	return DIV_ROUND_CLOSEST_ULL(parent_rate, (div->div + 1));
+	return UDIV_ROUND_NEAREST(parent_rate, (div->div + 1));
 }
 
-static unsigned long sam9x60_fixed_div_pll_recalc_rate(struct clk *hw,
-						       unsigned long parent_rate)
-{
-	return parent_rate >> 1;
-}
-
-static int sam9x60_div_pll_set_rate(struct clk *hw, unsigned long rate,
+static TEE_Result sam9x60_div_pll_set_rate(struct clk *hw, unsigned long rate,
 				    unsigned long parent_rate)
 {
 	struct sam9x60_div *div = hw->priv;
 
-	div->div = DIV_ROUND_CLOSEST(parent_rate, rate) - 1;
+	div->div = UDIV_ROUND_NEAREST(parent_rate, rate) - 1;
 
-	return 0;
+	return TEE_SUCCESS;
 }
 
-static int sam9x60_div_pll_set_rate_chg(struct clk *hw, unsigned long rate,
+static TEE_Result sam9x60_div_pll_set_rate_chg(struct clk *hw, unsigned long rate,
 					unsigned long parent_rate)
 {
 	struct sam9x60_div *div = hw->priv;
 	struct sam9x60_pll_core *core = &div->core;
-	u32 regmap = core->base;
-	unsigned long irqflags;
+	vaddr_t regmap = core->base;
 	unsigned int val, cdiv;
-	div->div = DIV_ROUND_CLOSEST(parent_rate, rate) - 1;
+	div->div = UDIV_ROUND_NEAREST(parent_rate, rate) - 1;
 
 	io_clrsetbits32(regmap + AT91_PMC_PLL_UPDT, AT91_PMC_PLL_UPDT_ID_MSK,
 			   core->id);
@@ -428,11 +352,12 @@ static int sam9x60_div_pll_set_rate_chg(struct clk *hw, unsigned long rate,
 
 	/* Stop if nothing changed. */
 	if (cdiv == div->div)
-		return 0;
+		return TEE_SUCCESS;
 
 	sam9x60_div_pll_set_div(core, div->div, 0);
-	return 0;
+	return TEE_SUCCESS;
 }
+
 static const struct clk_ops sam9x60_div_pll_ops = {
 	.enable = sam9x60_div_pll_prepare,
 	.disable = sam9x60_div_pll_unprepare,
@@ -447,24 +372,17 @@ static const struct clk_ops sam9x60_div_pll_ops_chg = {
 	.get_rate = sam9x60_div_pll_recalc_rate,
 };
 
-static const struct clk_ops sam9x60_fixed_div_pll_ops = {
-	.enable = sam9x60_div_pll_prepare,
-	.disable = sam9x60_div_pll_unprepare,
-	.get_rate = sam9x60_fixed_div_pll_recalc_rate,
-};
-
-
 struct clk *
 sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
 			      const char *name, struct clk *parent, uint8_t id,
 			      const struct clk_pll_charac *characteristics,
-			      const struct clk_pll_layout *layout, u32 flags)
+			      const struct clk_pll_layout *layout, uint32_t flags)
 {
 	struct sam9x60_frac *frac;
 	struct clk *hw;
-	unsigned long parent_rate, irqflags;
+	unsigned long parent_rate;
 	unsigned int val;
-	int ret;
+	TEE_Result ret;
 
 //	if (!name || !parent || id > PLL_ID_MAX)
 //		return NULL;
@@ -510,7 +428,7 @@ sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
 		ret = sam9x60_frac_pll_compute_mul_frac(frac,
 							characteristics->output[0].min,
 							parent_rate, true);
-		if (ret <= 0) {
+		if (ret != TEE_SUCCESS) {
 			clk_free(hw);
 			free(frac);
 			return NULL;
@@ -528,16 +446,14 @@ sam9x60_clk_register_frac_pll(struct pmc_data *pmc,
 
 struct clk *
 sam9x60_clk_register_div_pll(struct pmc_data *pmc,
-			     const char *name, struct clk *parent, u8 id,
+			     const char *name, struct clk *parent, uint8_t id,
 			     const struct clk_pll_charac *characteristics,
-			     const struct clk_pll_layout *layout, u32 flags,
-			     u32 safe_div)
+			     const struct clk_pll_layout *layout, uint32_t flags,
+			     uint32_t safe_div)
 {
 	struct sam9x60_div *div;
 	struct clk *hw;
-	unsigned long irqflags;
 	unsigned int val;
-	int ret;
 
 	/* We only support one changeable PLL. */
 //	if (id > PLL_ID_MAX || (safe_div && notifier_div))
@@ -550,14 +466,10 @@ sam9x60_clk_register_div_pll(struct pmc_data *pmc,
 	if (!div)
 		return NULL;
 
-	if (layout->div2) {
-		hw = clk_alloc(name, &sam9x60_fixed_div_pll_ops, &parent, 1);
-	} else {
-		if (flags & CLK_SET_RATE_GATE)
-			hw = clk_alloc(name, &sam9x60_div_pll_ops, &parent, 1);
-		else
-			hw = clk_alloc(name, &sam9x60_div_pll_ops_chg, &parent, 1);
-	}
+	if (flags & CLK_SET_RATE_GATE)
+		hw = clk_alloc(name, &sam9x60_div_pll_ops, &parent, 1);
+	else
+		hw = clk_alloc(name, &sam9x60_div_pll_ops_chg, &parent, 1);
 	if (!hw) {
 		free(div);
 		return NULL;
@@ -581,9 +493,8 @@ sam9x60_clk_register_div_pll(struct pmc_data *pmc,
 		clk_free(hw);
 		free(div);
 		return NULL;
-	} else if (div->safe_div) {
-		notifier_div = div;
 	}
+
 	return hw;
 }
 
