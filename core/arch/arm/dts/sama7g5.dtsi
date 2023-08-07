@@ -377,7 +377,7 @@
 				#size-cells = <0>;
 				reg = <0xe2814000 0x100>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 88>, <&pmc PMC_TYPE_PERIPHERAL 89>, <&pmc PMC_TYPE_PERIPHERAL 90>, <&clk32k 1>;
-				clock-names = "t0_clk", "t1_clk", "t2_clk", "md_slck";
+				clock-names = "t0_clk", "t1_clk", "t2_clk", "td_slck";
 			};
 			tcb1: timer@e0800000 {
 				compatible = "atmel,sama5d2-tcb", "simple-mfd", "syscon";
@@ -385,7 +385,7 @@
 				#size-cells = <0>;
 				reg = <0xe0800000 0x100>;
 				clocks = <&pmc PMC_TYPE_PERIPHERAL 91>, <&pmc PMC_TYPE_PERIPHERAL 92>, <&pmc PMC_TYPE_PERIPHERAL 93>, <&clk32k 1>;
-				clock-names = "t0_clk", "t1_clk", "t2_clk", "md_slck";
+				clock-names = "t0_clk", "t1_clk", "t2_clk", "td_slck";
 				status = "disabled"; secure-status = "okay";     /* Secure only */
 			};
 			clk32k: sckc@e001d050 {

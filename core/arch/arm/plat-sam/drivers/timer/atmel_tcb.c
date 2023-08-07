@@ -57,7 +57,7 @@
 #define  TCB_WPMR_WAKEY		0x54494d
 
 #ifdef OPTEE_SAMA7G5
-static const char *tcb_clocks[] = {"t0_clk", "t1_clk", "t2_clk", "md_slck"};
+static const char *tcb_clocks[] = {"t0_clk", "t1_clk", "t2_clk", "td_slck"};
 #else
 static const char *tcb_clocks[] = {"t0_clk", "gclk", "slow_clk"};
 #endif
@@ -167,7 +167,7 @@ static TEE_Result atmel_tcb_setup(const void *fdt, int nodeoffset, int status)
 		return TEE_SUCCESS;
 
 #ifdef OPTEE_SAMA7G5
-	res = clk_dt_get_by_name(fdt, nodeoffset, "md_slck", &clk);
+	res = clk_dt_get_by_name(fdt, nodeoffset, "td_slck", &clk);
 #else
 	res = clk_dt_get_by_name(fdt, nodeoffset, "slow_clk", &clk);
 #endif
